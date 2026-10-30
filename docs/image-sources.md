@@ -4,9 +4,9 @@
 
 ## Главный экран
 
-- Файлы: `public/assets/hero-ensemble-poster.webp`, `public/assets/hero-ensemble-motion.mp4`.
+- Файлы: `public/assets/hero-ensemble-poster.webp`, `public/assets/hero-video.mp4`.
 - Изображение танцевального коллектива создано специально для проекта при помощи OpenAI ImageGen.
-- MP4 — спокойная 12-секундная анимация кадра без звука; её можно заменить роликом Higgsfield с тем же именем без изменения HTML.
+- Видео `hero-video.mp4` предоставлено пользователем. До загрузки видео показывается фотография `hero-ensemble-poster.webp`.
 
 ## Концертный зал «Останкино»
 

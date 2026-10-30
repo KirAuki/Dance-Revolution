@@ -8,3 +8,4 @@ dist/
 .qa/
 test-results/
 playwright-report/
+/public/assets/hero-video.mp4

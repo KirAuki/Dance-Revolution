@@ -23,7 +23,7 @@ export default function HeroVideo() {
       poster="/assets/hero-ensemble-poster.webp"
       aria-hidden="true"
     >
-      <source src="/assets/hero-ensemble-motion.mp4" type="video/mp4" />
+      <source src="/assets/hero-video.mp4" type="video/mp4" />
     </video>
   );
 }
