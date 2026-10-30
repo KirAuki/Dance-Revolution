@@ -102,6 +102,44 @@ test("desktop and mobile layout, navigation and document links load without brow
   expect(failures).toEqual([]);
 });
 
+test("mobile menu covers the viewport after scrolling and stays usable on short screens", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await expect(page.locator(".page-loader")).toHaveClass(/is-hidden/);
+  const menu = page.locator("#site-nav");
+  const toggle = page.locator(".menu-button");
+
+  for (const top of [0, 5000, 20000]) {
+    await page.evaluate(y => window.scrollTo(0, y), top);
+    if (top > 0) await expect(page.locator(".site-header")).toHaveClass(/is-scrolled/);
+    const savedScroll = await page.evaluate(() => window.scrollY);
+    await toggle.click();
+    await expect(menu).toBeVisible();
+    const bounds = await menu.boundingBox();
+    expect(bounds.x).toBe(0);
+    expect(bounds.y).toBe(0);
+    expect(bounds.width).toBe(390);
+    expect(bounds.height).toBe(844);
+    await expect.poll(() => page.evaluate(() => Boolean(document.elementFromPoint(200, 800)?.closest("#site-nav")))).toBe(true);
+    await expect(menu.locator("a").first()).toBeInViewport();
+    await expect(menu.locator("a").last()).toBeInViewport();
+    await page.keyboard.press("Escape");
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(await page.evaluate(() => window.scrollY)).toBe(savedScroll);
+  }
+
+  await page.setViewportSize({ width: 844, height: 390 });
+  await toggle.click();
+  await expect(menu).toBeVisible();
+  await expect(menu.locator("a").first()).toBeInViewport();
+  await menu.locator("a").last().scrollIntoViewIfNeeded();
+  await expect(menu.locator("a").last()).toBeInViewport();
+  await menu.locator("a").last().click();
+  await expect(menu).toBeHidden();
+  await expect(page.locator("body")).not.toHaveClass(/menu-open/);
+  await expect(page).toHaveURL(/#contacts$/);
+});
+
 test("form validates every step, requires guests and preserves entered values", async ({
   page,
 }) => {
