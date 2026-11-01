@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import ArrowIcon from "./ArrowIcon.jsx";
 
 const links = [
   ["about", "О проекте"],
@@ -7,6 +8,7 @@ const links = [
   ["awards", "Награды"],
   ["jury", "Жюри"],
   ["travel", "Участникам"],
+  ["news", "Новости"],
   ["contacts", "Контакты"],
 ];
 
@@ -129,7 +131,7 @@ export default function Header() {
             href="#application"
             onClick={() => setOpen(false)}
           >
-            Подать заявку <span>↗</span>
+            Подать заявку <ArrowIcon />
           </a>
           <button
             ref={menuRef}
@@ -150,7 +152,7 @@ export default function Header() {
         href="#top"
         aria-label="Вернуться в начало страницы"
       >
-        ↑
+        <ArrowIcon direction="up" />
       </a>
     </>
   );

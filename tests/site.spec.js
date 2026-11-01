@@ -33,12 +33,11 @@ async function secondStep(page) {
   await page.getByRole("button", { name: "Далее" }).click();
 }
 async function finalStep(page) {
+  await expect(
+    page.locator('.form-step:not([hidden]) input[type="checkbox"]'),
+  ).toHaveCount(2);
   await fillStep(page, ["email", "phone"]);
-  for (const name of [
-    "regulationsAccepted",
-    "personalDataAccepted",
-    "mediaAccepted",
-  ])
+  for (const name of ["regulationsAccepted", "personalDataAccepted"])
     await page.locator(`[name="${name}"]`).check();
 }
 
@@ -102,7 +101,71 @@ test("desktop and mobile layout, navigation and document links load without brow
   expect(failures).toEqual([]);
 });
 
-test("mobile menu covers the viewport after scrolling and stays usable on short screens", async ({ page }) => {
+test("news replaces FAQ and article drafts are not public", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("#news")).toContainText("12 / Новости");
+  await expect(page.locator("#faq")).toHaveCount(0);
+  await page.locator('#news a[href="/news"]').click();
+  await expect(page.locator("h1")).toContainText("Новости и статьи");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex,follow",
+  );
+  expect((await request.get("/news/kak-podgotovit-zayavku")).status()).toBe(
+    404,
+  );
+  expect(await (await request.get("/sitemap.xml")).text()).not.toContain(
+    "kak-podgotovit-zayavku",
+  );
+});
+
+test("marquee fills wide screens through the entire loop with even spacing", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await page.locator(".marquee__track").waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  for (const width of [390, 1440, 1920, 3840]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const progress of [0, 0.5, 0.999]) {
+      const metrics = await page
+        .locator(".marquee__track")
+        .evaluate((track, progress) => {
+          const animation = track.getAnimations()[0];
+          animation.pause();
+          animation.currentTime = 80000 * progress;
+          const groups = [...track.children].map((group) =>
+            group.getBoundingClientRect(),
+          );
+          const children = [...track.querySelectorAll("span")].map((node) =>
+            node.getBoundingClientRect(),
+          );
+          const gaps = children
+            .slice(1)
+            .map((rect, index) => rect.left - children[index].right);
+          return {
+            left: groups[0].left,
+            right: groups.at(-1).right,
+            widths: groups.map((rect) => rect.width),
+            minGap: Math.min(...gaps),
+            maxGap: Math.max(...gaps),
+          };
+        }, progress);
+      expect(metrics.left).toBeLessThanOrEqual(1);
+      expect(metrics.right).toBeGreaterThanOrEqual(width - 1);
+      expect(metrics.widths[0]).toBeCloseTo(metrics.widths[1], 1);
+      expect(metrics.maxGap - metrics.minGap).toBeLessThan(1);
+    }
+  }
+});
+
+test("mobile menu covers the viewport after scrolling and stays usable on short screens", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.locator(".page-loader")).toHaveClass(/is-hidden/);
@@ -110,8 +173,9 @@ test("mobile menu covers the viewport after scrolling and stays usable on short 
   const toggle = page.locator(".menu-button");
 
   for (const top of [0, 5000, 20000]) {
-    await page.evaluate(y => window.scrollTo(0, y), top);
-    if (top > 0) await expect(page.locator(".site-header")).toHaveClass(/is-scrolled/);
+    await page.evaluate((y) => window.scrollTo(0, y), top);
+    if (top > 0)
+      await expect(page.locator(".site-header")).toHaveClass(/is-scrolled/);
     const savedScroll = await page.evaluate(() => window.scrollY);
     await toggle.click();
     await expect(menu).toBeVisible();
@@ -120,7 +184,13 @@ test("mobile menu covers the viewport after scrolling and stays usable on short 
     expect(bounds.y).toBe(0);
     expect(bounds.width).toBe(390);
     expect(bounds.height).toBe(844);
-    await expect.poll(() => page.evaluate(() => Boolean(document.elementFromPoint(200, 800)?.closest("#site-nav")))).toBe(true);
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          Boolean(document.elementFromPoint(200, 800)?.closest("#site-nav")),
+        ),
+      )
+      .toBe(true);
     await expect(menu.locator("a").first()).toBeInViewport();
     await expect(menu.locator("a").last()).toBeInViewport();
     await page.keyboard.press("Escape");
@@ -189,6 +259,7 @@ test("form keeps data on failure, blocks duplicate submits and resets after conf
     const body = route.request().postDataJSON();
     expect(body.duration).toBe("04:00");
     expect(body.personalDataAccepted).toBe(true);
+    expect(body).not.toHaveProperty("mediaAccepted");
     await new Promise((resolve) => setTimeout(resolve, 150));
     await route.fulfill({
       status: attempts === 1 ? 503 : 200,

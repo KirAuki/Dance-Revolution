@@ -80,7 +80,6 @@ export const stepFields = [
     "comment",
     "regulationsAccepted",
     "personalDataAccepted",
-    "mediaAccepted",
     "website",
   ],
 ];
@@ -154,11 +153,7 @@ export function validateApplication(body) {
   const seconds = duration ? Number(duration[1]) * 60 + Number(duration[2]) : 0;
   if (!duration || seconds <= 0 || seconds > 240)
     errors.duration = "Укажите хронометраж в формате 03:30, от 00:01 до 04:00.";
-  for (const key of [
-    "regulationsAccepted",
-    "personalDataAccepted",
-    "mediaAccepted",
-  ]) {
+  for (const key of ["regulationsAccepted", "personalDataAccepted"]) {
     if (body[key] !== true) errors[key] = "Необходимо подтвердить согласие.";
   }
   return errors;

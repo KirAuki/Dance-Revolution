@@ -18,38 +18,38 @@ export default function Categories() {
         <span>19+</span>
         <span>Смешанная</span>
       </div>
-      <div className="shell criteria-grid">
-        <article className="criteria-card reveal">
+      <div className="shell criteria-grid reveal">
+        <article className="criteria-card">
           <span>01</span>
           <strong>Репертуар и возраст</strong>
           <p>Соответствие постановки возрасту исполнителей.</p>
         </article>
-        <article className="criteria-card reveal">
+        <article className="criteria-card">
           <span>02</span>
           <strong>Номинация</strong>
           <p>Соответствие номера заявленному направлению.</p>
         </article>
-        <article className="criteria-card reveal">
+        <article className="criteria-card">
           <span>03</span>
           <strong>Техника</strong>
           <p>Исполнительская точность и уровень подготовки.</p>
         </article>
-        <article className="criteria-card reveal">
+        <article className="criteria-card">
           <span>04</span>
           <strong>Мастерство</strong>
           <p>Актёрская выразительность и сценическая подача.</p>
         </article>
-        <article className="criteria-card reveal">
+        <article className="criteria-card">
           <span>05</span>
           <strong>Постановка</strong>
           <p>Композиция, драматургия и работа с пространством.</p>
         </article>
-        <article className="criteria-card reveal">
+        <article className="criteria-card">
           <span>06</span>
           <strong>Костюмы</strong>
           <p>Целостность и соответствие сценическому образу.</p>
         </article>
-        <article className="criteria-card reveal">
+        <article className="criteria-card">
           <span>07</span>
           <strong>Оригинальность</strong>
           <p>Авторский язык и свежесть художественного решения.</p>

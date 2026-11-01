@@ -16,7 +16,8 @@ export function usePageEffects(pageRef) {
             }
           }
         },
-        { threshold: 0.12, rootMargin: "0px 0px -7% 0px" },
+        // A CMS grid can be taller than the viewport; reveal it when its edge enters.
+        { threshold: 0, rootMargin: "0px 0px -7% 0px" },
       );
       elements.forEach((element) => observer.observe(element));
     } else elements.forEach((element) => element.classList.add("is-visible"));

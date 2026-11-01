@@ -1,4 +1,9 @@
+import ArrowIcon from "./ArrowIcon.jsx";
+import { useSiteSettings } from "../SiteSettings.jsx";
+import { phoneHref } from "../../shared/site-settings.js";
+
 export default function Footer() {
+  const { event, contacts, documents } = useSiteSettings();
   return (
     <footer className="footer" id="contacts">
       <div className="shell footer__hero">
@@ -6,50 +11,51 @@ export default function Footer() {
           <span>ТАНЦЕВАЛЬНАЯ</span>
           <strong>революция</strong>
         </a>
-        <a className="footer__mail" href="mailto:akulov@media-msk.ru">
-          akulov@media-msk.ru ↗
+        <a className="footer__mail" href={`mailto:${contacts.email}`}>
+          {contacts.email} <ArrowIcon />
         </a>
       </div>
       <div className="shell footer__grid">
         <div>
           <span>Оргкомитет</span>
-          <a href="tel:+79256577717">+7 925 657-77-17</a>
-          <small>ежедневно с 11:00 до 20:00</small>
+          <a href={phoneHref(contacts.phone)}>{contacts.phone}</a>
+          <small>{contacts.hours}</small>
         </div>
         <div>
           <span>Мессенджеры</span>
-          <a href="https://t.me/dancermsk" target="_blank" rel="noreferrer">
-            Telegram @dancermsk
+          <a href={contacts.telegramUrl} target="_blank" rel="noreferrer">
+            {contacts.telegramLabel}
           </a>
           <a
-            href="https://max.ru/+79256577717"
+            href={contacts.maxUrl}
             target="_blank"
             rel="noreferrer"
           >
-            MAX +7 925 657-77-17
+            {contacts.maxLabel}
           </a>
         </div>
         <div>
           <span>Фонограммы</span>
-          <a href="mailto:dance@revolution-msk.ru">dance@revolution-msk.ru</a>
+          <a href={`mailto:${contacts.tracksEmail}`}>{contacts.tracksEmail}</a>
           <small>WAV или MP3 после подтверждения</small>
         </div>
         <div>
           <span>Документы</span>
           <a
-            href="/docs/polozhenie-tancevalnaya-revolyutsiya-2027.docx"
+            href={documents.regulations}
             download
           >
             Положение
           </a>
           <a href="/privacy.html">Политика конфиденциальности</a>
           <a href="/consent.html">Согласие на обработку ПД</a>
+          <a href="/news">Новости и статьи</a>
         </div>
       </div>
       <div className="shell footer__bottom">
-        <span>© 2027 «Танцевальная революция»</span>
+        <span>© {event.startDate.slice(0, 4)} «Танцевальная революция»</span>
         <span>Организатор: ИП Шубенко Дмитрий Геннадьевич</span>
-        <span>Москва</span>
+        <span>{event.city}</span>
       </div>
     </footer>
   );

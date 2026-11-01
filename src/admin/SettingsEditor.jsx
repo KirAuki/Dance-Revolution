@@ -1,0 +1,108 @@
+import { settingsGroups, eventRange, dayCount, validDate, validImage, validDocument } from "../../shared/site-settings.js";
+
+function SettingField({ field, value, name, onChange, onUpload }) {
+  const type = field.type || "text";
+  if (type === "image" || type === "document") {
+    const image = type === "image";
+    return (
+      <div className="cms-settings-file">
+        <label>
+          {field.label}
+          <input name={name} type="file" accept={image ? "image/jpeg,image/png,image/webp" : ".pdf,.docx"}
+            onChange={event => {
+              const file = event.target.files[0];
+              event.target.value = "";
+              if (file) onUpload(file, type, onChange);
+            }} />
+        </label>
+        {image && validImage(value) && <img src={value} className="cms-settings-image" alt={field.label} />}
+        {!image && validDocument(value) && <a href={value} target="_blank" rel="noreferrer">Открыть текущее положение</a>}
+        <small>{image ? "JPG, PNG или WebP, до 2 МБ." : "PDF или DOCX, до 10 МБ. После сохранения заменит все ссылки на положение."}</small>
+      </div>
+    );
+  }
+  const attributes = {
+    name, required: true, value,
+    maxLength: field.maxLength || (type === "email" ? 254 : type === "tel" ? 40 : 2048),
+    onChange: event => onChange(type === "number" && event.target.value !== "" ? Number(event.target.value) : event.target.value),
+  };
+  return <label className={type === "textarea" ? "cms-settings-wide" : undefined}>
+    {field.label}
+    {type === "textarea" ? <textarea {...attributes} rows={4} /> : <input {...attributes} type={type}
+      min={type === "date" ? "2000-01-01" : field.min}
+      max={type === "date" ? "2099-12-31" : field.max} step={type === "number" ? 1 : undefined} />}
+  </label>;
+}
+
+export default function SettingsEditor({ record, dirty, busy, onChange, onSave, onReload, onUpload }) {
+  if (!record) return <div className="cms-panel"><p>Загружаем настройки сайта…</p><button className="cms-button" disabled={busy} onClick={onReload}>Повторить загрузку</button></div>;
+  const settings = record.settings;
+  const updateField = (group, key, value) => onChange({ ...settings, [group]: { ...settings[group], [key]: value } });
+  const updateItem = (group, index, values) => onChange({ ...settings, [group]: settings[group].map((item, i) => i === index ? { ...item, ...values } : item) });
+  const moveJury = (from, to) => {
+    const jury = [...settings.jury];
+    [jury[from], jury[to]] = [jury[to], jury[from]];
+    onChange({ ...settings, jury });
+  };
+  return <form className="cms-settings" onSubmit={event => { event.preventDefault(); onSave(); }}>
+    <aside className="cms-settings-nav">
+      <nav aria-label="Разделы настроек">
+        {settingsGroups.map(group => <a key={group.key} href={`#settings-${group.key}`}>{group.title}</a>)}
+        <a href="#settings-program">Программа</a>
+        <a href="#settings-jury">Жюри</a>
+      </nav>
+      <div className="cms-panel cms-save">
+        <p className="cms-muted" role="status">{busy ? "Выполняем запрос…" : dirty ? "Есть несохранённые изменения" : "Все изменения сохранены"}</p>
+        <button className="cms-button cms-button--primary" disabled={busy || !dirty}>Сохранить настройки</button>
+        <button className="cms-text-button" type="button" onClick={onReload} disabled={busy}>Загрузить сохранённую версию</button>
+        <small>Изменения появятся на сайте после обновления страницы.</small>
+      </div>
+    </aside>
+    <fieldset className="cms-settings-content" disabled={busy}>
+      <div className="cms-settings-summary cms-panel">
+        <h2>{validDate(settings.event.startDate) && validDate(settings.event.endDate) ? eventRange(settings.event.startDate, settings.event.endDate) : "Укажите даты конкурса"}</h2>
+        <p>{settings.event.city} · {settings.venue.name}</p>
+        <small>Даты программы, длительность проживания и год на сайте обновляются автоматически. Тексты программы и содержимое положения редактируются отдельно.</small>
+      </div>
+      {settingsGroups.map(group => <section className="cms-panel" id={`settings-${group.key}`} key={group.key}>
+        <h2>{group.title}</h2>
+        <div className="cms-settings-fields">
+          {group.fields.map(field => <SettingField key={field.key} field={field} name={`${group.key}.${field.key}`}
+            value={settings[group.key][field.key]} onChange={value => updateField(group.key, field.key, value)} onUpload={onUpload} />)}
+        </div>
+      </section>)}
+      <section className="cms-panel" id="settings-program">
+        <h2>Программа</h2>
+        <p className="cms-muted">{validDate(settings.event.arrivalDate) && validDate(settings.event.departureDate) ? `${dayCount(settings.event.arrivalDate, settings.event.departureDate)} с проживанием. ` : ""}Даты этапов берутся из раздела «Даты и город».</p>
+        {settings.program.map((item, index) => <div className="cms-settings-item" key={index}>
+          <h3>{["Заезд", "Начало конкурса", "Финал и награждение", "Выезд"][index]}</h3>
+          <SettingField field={{label: "Название этапа", maxLength: 80}} name={`program.${index}.title`} value={item.title} onChange={title => updateItem("program", index, {title})} />
+          <SettingField field={{label: "Описание этапа", type: "textarea", maxLength: 1000}} name={`program.${index}.text`} value={item.text} onChange={text => updateItem("program", index, {text})} />
+        </div>)}
+      </section>
+      <section className="cms-panel" id="settings-jury">
+        <h2>Жюри</h2>
+        <p className="cms-muted">Имена, должности, описания и фотографии. Порядок карточек соответствует порядку в этом списке.</p>
+        {settings.jury.map((person, index) => <div className="cms-settings-item" key={index}>
+          <div className="cms-settings-item__heading">
+            <h3>Член жюри {index + 1}</h3>
+            <div>
+              <button type="button" className="cms-text-button" disabled={index === 0} onClick={() => moveJury(index, index - 1)}>Выше</button>
+              <button type="button" className="cms-text-button" disabled={index === settings.jury.length - 1} onClick={() => moveJury(index, index + 1)}>Ниже</button>
+              <button type="button" className="cms-text-button cms-danger" disabled={settings.jury.length === 1} onClick={() => onChange({...settings, jury: settings.jury.filter((_, i) => i !== index)})}>Убрать</button>
+            </div>
+          </div>
+          <div className="cms-settings-fields">
+            {[{key:"name",label:"Имя",maxLength:120},{key:"role",label:"Должность",maxLength:180},{key:"bio",label:"Описание",type:"textarea",maxLength:1000}].map(field =>
+              <SettingField key={field.key} field={field} name={`jury.${index}.${field.key}`} value={person[field.key]} onChange={value => updateItem("jury", index, {[field.key]: value})} />)}
+            <SettingField field={{label:"Фотография",type:"image"}} name={`jury.${index}.image`} value={person.image} onUpload={onUpload} onChange={image => updateItem("jury", index, {image, spriteIndex:null})} />
+            {!person.image && person.spriteIndex !== null && <div className="cms-settings-image" role="img" aria-label={person.name}
+              style={{background:`#111 url("/assets/jury-five.webp") ${person.spriteIndex * 25}% center / 500% auto no-repeat`}} />}
+          </div>
+          {(person.image || person.spriteIndex !== null) && <button type="button" className="cms-text-button" onClick={() => updateItem("jury", index, {image:"",spriteIndex:null})}>Убрать фотографию</button>}
+        </div>)}
+        <button type="button" className="cms-button" disabled={settings.jury.length >= 12} onClick={() => onChange({...settings, jury:[...settings.jury,{name:"",role:"",bio:"",image:"",spriteIndex:null}]})}>Добавить члена жюри</button>
+      </section>
+    </fieldset>
+  </form>;
+}

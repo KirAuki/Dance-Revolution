@@ -2,6 +2,7 @@ import { useRef } from "react";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import PageLoader from "./components/PageLoader.jsx";
+import Marquee from "./components/Marquee.jsx";
 import Hero from "./sections/Hero.jsx";
 import About from "./sections/About.jsx";
 import Format from "./sections/Format.jsx";
@@ -14,7 +15,7 @@ import Jury from "./sections/Jury.jsx";
 import Travel from "./sections/Travel.jsx";
 import Schedule from "./sections/Schedule.jsx";
 import Conditions from "./sections/Conditions.jsx";
-import Faq from "./sections/Faq.jsx";
+import News from "./sections/News.jsx";
 import Application from "./sections/Application.jsx";
 import { usePageEffects } from "./hooks/usePageEffects.js";
 
@@ -27,12 +28,7 @@ export default function App() {
       <Header />
       <main>
         <Hero />
-        <div className="marquee marquee--lime" aria-hidden="true">
-          <div className="marquee__track">
-            <span>ТВОЙ ТАНЕЦ · ТВОЯ СЦЕНА · ТВОЯ РЕВОЛЮЦИЯ ·</span>
-            <span>ТВОЙ ТАНЕЦ · ТВОЯ СЦЕНА · ТВОЯ РЕВОЛЮЦИЯ ·</span>
-          </div>
-        </div>
+        <Marquee />
         <About />
         <Format />
         <Venue />
@@ -44,7 +40,7 @@ export default function App() {
         <Travel />
         <Schedule />
         <Conditions />
-        <Faq />
+        <News />
         <Application />
       </main>
       <Footer />

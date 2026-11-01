@@ -8,13 +8,14 @@ import {
   validateApplication,
 } from "../../shared/application.js";
 import { useReducedMotion } from "../hooks/useReducedMotion.js";
+import ArrowIcon from "./ArrowIcon.jsx";
+import { useSiteSettings } from "../SiteSettings.jsx";
 
 const initialValues = () => ({
   ...Object.fromEntries(Object.keys(limits).map((key) => [key, ""])),
   participantCount: "",
   regulationsAccepted: false,
   personalDataAccepted: false,
-  mediaAccepted: false,
 });
 
 function Field({
@@ -49,7 +50,8 @@ function Field({
   return (
     <label className="form-field" htmlFor={name}>
       <span className="form-label">
-        {label}{required && "\u00a0*"}
+        {label}
+        {required && "\u00a0*"}
       </span>
       {options ? (
         <select {...attributes}>
@@ -74,6 +76,7 @@ function Field({
 }
 
 export default function ApplicationForm() {
+  const { contacts, documents } = useSiteSettings();
   const [values, setValues] = useState(initialValues);
   const [step, setStep] = useState(0);
   const [furthest, setFurthest] = useState(0);
@@ -182,7 +185,7 @@ export default function ApplicationForm() {
           ? "Время ожидания истекло. Проверьте почту перед повторной отправкой."
           : error.message;
       setAlert(
-        `${message} Свяжитесь с Оргкомитетом: akulov@media-msk.ru или +7 925 657-77-17.`,
+        `${message} Свяжитесь с Оргкомитетом: ${contacts.email} или ${contacts.phone}.`,
       );
     } finally {
       clearTimeout(timeout);
@@ -233,7 +236,7 @@ export default function ApplicationForm() {
       type="button"
       onClick={() => goTo(step + 1)}
     >
-      Далее <span>→</span>
+      Далее <ArrowIcon direction="right" />
     </button>
   );
 
@@ -409,7 +412,7 @@ export default function ApplicationForm() {
             <>
               Я ознакомился(-ась) с{" "}
               <a
-                href="/docs/polozhenie-tancevalnaya-revolyutsiya-2027.docx"
+                href={documents.regulations}
                 download
               >
                 Положением конкурса
@@ -430,10 +433,6 @@ export default function ApplicationForm() {
               </a>
               .
             </>,
-          )}
-          {consent(
-            "mediaAccepted",
-            "Я подтверждаю наличие необходимых согласий участников или их законных представителей на фото- и видеосъёмку в рамках конкурса.",
           )}
           <input
             className="honeypot"
@@ -456,7 +455,7 @@ export default function ApplicationForm() {
                 "Отправляем…"
               ) : (
                 <>
-                  Отправить заявку <span>↗</span>
+                  Отправить заявку <ArrowIcon />
                 </>
               )}
             </button>

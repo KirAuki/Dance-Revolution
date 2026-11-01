@@ -1,4 +1,8 @@
+import { useSiteSettings } from "../SiteSettings.jsx";
+import { eventDate } from "../../shared/site-settings.js";
+
 export default function Format() {
+  const { event } = useSiteSettings();
   return (
     <section className="stage section section--dark" id="format">
       <div className="shell section-heading section-heading--right">
@@ -15,16 +19,16 @@ export default function Format() {
           height="900"
         />
         <div className="stage__stamp" aria-hidden="true">
-          <span>03</span>
-          <strong>АПРЕЛЯ</strong>
+          <span>{event.startDate.slice(8)}</span>
+          <strong>{eventDate(event.startDate).split(" ")[1]}</strong>
         </div>
         <div className="stage__caption">
           <span>КОНКУРСНАЯ ПРОГРАММА</span>
           <strong>до 4 минут на номер</strong>
         </div>
       </div>
-      <div className="shell format-grid">
-        <article className="reveal">
+      <div className="shell format-grid reveal">
+        <article>
           <span>01</span>
           <h3>Только коллективы</h3>
           <p>
@@ -32,7 +36,7 @@ export default function Format() {
             формы не участвуют.
           </p>
         </article>
-        <article className="reveal">
+        <article>
           <span>02</span>
           <h3>Профессиональные уровни</h3>
           <p>
@@ -40,7 +44,7 @@ export default function Format() {
             образцовых коллективов.
           </p>
         </article>
-        <article className="reveal">
+        <article>
           <span>03</span>
           <h3>Оценка каждого номера</h3>
           <p>
@@ -48,9 +52,9 @@ export default function Format() {
             семи критериев.
           </p>
         </article>
-        <article className="reveal">
+        <article>
           <span>04</span>
-          <h3>Награждение 4 апреля</h3>
+          <h3>Награждение {eventDate(event.endDate)}</h3>
           <p>
             Лауреаты, дипломанты, Гран-при, специальные призы и отдельная
             премиальная программа.

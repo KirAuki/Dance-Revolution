@@ -18,5 +18,9 @@ export const validApplication = {
   phone: "+7 999 000-00-00",
   regulationsAccepted: true,
   personalDataAccepted: true,
-  mediaAccepted: true,
+};
+// Created only in the temporary database owned by the browser test run.
+export const adminCredentials = {
+  login: "qa-editor",
+  password: "Local-test-only-not-a-real-account-2027",
 };

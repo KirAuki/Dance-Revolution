@@ -1,4 +1,10 @@
+import ArrowIcon from "../components/ArrowIcon.jsx";
+import { useSiteSettings } from "../SiteSettings.jsx";
+import { compactEventDates } from "../../shared/site-settings.js";
+
 export default function Venue() {
+  const { event, venue } = useSiteSettings();
+  const dates = compactEventDates(event.startDate, event.endDate);
   return (
     <section className="venue section section--light" id="venue">
       <div className="shell section-heading">
@@ -7,38 +13,36 @@ export default function Venue() {
           Сцена, которую <em className="title-marker">видела вся страна.</em>
         </h2>
         <p className="section-intro reveal">
-          Концертный зал «Останкино» — ул. Академика Королёва, 15, корп. 2.
-          Конкурс пройдёт в одном из самых узнаваемых телевизионных районов
-          Москвы.
+          {venue.name} — {venue.address}. {venue.description}
         </p>
       </div>
       <div className="shell photo-story photo-story--single">
         <figure className="photo-story__main reveal parallax-media">
           <img
-            src="/assets/ostankino-venue.webp"
-            alt="Сцена и зрительный зал концертного зала «Останкино»"
+            src={venue.image}
+            alt={venue.name}
             width="1800"
             height="1200"
             loading="lazy"
           />
           <figcaption>
-            <span>01</span> Концертный зал «Останкино»
+            <span>01</span> {venue.name}
           </figcaption>
         </figure>
-        <div className="photo-story__note reveal">
+        <div className={`photo-story__note reveal${event.startDate.slice(0, 7) !== event.endDate.slice(0, 7) ? " photo-story__note--long-date" : ""}`}>
           <strong>
-            03–04
+            {dates[0]}
             <br />
-            04·2027
+            {dates[1]}
           </strong>
           <p>Один зал для всей конкурсной программы и общего финала.</p>
           <a
             className="text-link"
-            href="https://yandex.ru/profile/1053713542?lang=ru&amp;ysclid=ms2gvwyf0287236650"
+            href={venue.mapUrl}
             target="_blank"
             rel="noreferrer"
           >
-            Открыть маршрут ↗
+            Открыть маршрут <ArrowIcon />
           </a>
         </div>
       </div>

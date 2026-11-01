@@ -1,11 +1,15 @@
+import { useSiteSettings } from "../SiteSettings.jsx";
+import { money } from "../../shared/site-settings.js";
+
 export default function Premium() {
+  const { prices } = useSiteSettings();
   return (
     <section className="premium section section--light" id="premium">
       <div className="shell premium__layout">
         <div className="premium__sticky">
           <p className="section-label reveal">07 / Премия</p>
           <h2 className="display-title display-title--marker reveal">
-            10 000 ₽{" "}
+            {money(prices.premium)}{" "}
             <em className="title-marker">победителю в каждой номинации.</em>
           </h2>
           <p className="section-intro reveal">

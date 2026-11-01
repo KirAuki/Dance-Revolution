@@ -1,6 +1,10 @@
 import HeroVideo from "../components/HeroVideo.jsx";
+import ArrowIcon from "../components/ArrowIcon.jsx";
+import { useSiteSettings } from "../SiteSettings.jsx";
+import { compactEventDates, eventRange } from "../../shared/site-settings.js";
 
 export default function Hero() {
+  const { event, venue, documents } = useSiteSettings();
   return (
     <section className="hero" id="top" aria-labelledby="hero-title">
       <HeroVideo />
@@ -15,47 +19,47 @@ export default function Hero() {
           Международная премия-конкурс в сфере хореографического искусства
         </p>
         <div className="hero__date reveal">
-          <time dateTime="2027-04-03">03–04 / 04 / 2027</time>
-          <span>Москва</span>
+          <time dateTime={event.startDate}>{compactEventDates(event.startDate, event.endDate).join(" / ").replace("·", " / ")}</time>
+          <span>{event.city}</span>
         </div>
         <h1 id="hero-title" className="hero__title reveal">
           <span>ТАНЦЕВАЛЬНАЯ</span>
           <strong>РЕВОЛЮЦИЯ</strong>
         </h1>
         <p className="hero__lead reveal">
-          Два конкурсных дня на большой московской сцене — для хореографических
+          Конкурсная программа на большой сцене — для хореографических
           коллективов из России и стран ближнего зарубежья.
         </p>
         <div className="hero__actions reveal">
           <a className="button button--lime button--large" href="#application">
-            Подать заявку <span>↗</span>
+            Подать заявку <ArrowIcon />
           </a>
           <a
             className="button button--ghost button--large"
-            href="/docs/polozhenie-tancevalnaya-revolyutsiya-2027.docx"
+            href={documents.regulations}
             download
           >
-            Скачать положение <span>↓</span>
+            Скачать положение <ArrowIcon direction="down" />
           </a>
         </div>
       </div>
       <div className="shell hero__meta reveal">
         <div>
           <span>Даты</span>
-          <strong>3–4 апреля 2027</strong>
+          <strong>{eventRange(event.startDate, event.endDate)}</strong>
         </div>
         <div>
           <span>Город</span>
-          <strong>Москва</strong>
+          <strong>{event.city}</strong>
         </div>
         <div>
           <span>Площадка</span>
           <a
-            href="https://yandex.ru/profile/1053713542?lang=ru&amp;ysclid=ms2gvwyf0287236650"
+            href={venue.mapUrl}
             target="_blank"
             rel="noreferrer"
           >
-            КЗ «Останкино» ↗
+            {venue.name} <ArrowIcon />
           </a>
         </div>
       </div>

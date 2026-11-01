@@ -1,6 +1,10 @@
 import Counter from "../components/Counter.jsx";
+import { useSiteSettings } from "../SiteSettings.jsx";
+import { daysBetween, countLabel } from "../../shared/site-settings.js";
 
 export default function About() {
+  const { event } = useSiteSettings();
+  const days = daysBetween(event.startDate, event.endDate) + 1;
   return (
     <section className="about section section--light" id="about">
       <div className="shell about__grid">
@@ -16,7 +20,7 @@ export default function About() {
               профессиональных и самодеятельных хореографических коллективов.
             </p>
             <p>
-              Два конкурсных дня объединят большую сцену, профессиональную
+              Конкурс объединит большую сцену, профессиональную
               оценку, денежные премии и возможности для дальнейшего творческого
               развития.
             </p>
@@ -25,8 +29,8 @@ export default function About() {
       </div>
       <div className="shell facts-grid">
         <article className="fact reveal">
-          <Counter value={2} suffix="" />
-          <span>конкурсных дня</span>
+          <Counter value={days} suffix="" />
+          <span>{countLabel(days, ["конкурсный день", "конкурсных дня", "конкурсных дней"]).replace(/^\d+ /, "")}</span>
         </article>
         <article className="fact reveal">
           <Counter value={15} suffix="+" />

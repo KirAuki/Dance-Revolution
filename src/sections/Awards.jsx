@@ -7,8 +7,8 @@ export default function Awards() {
           Победа, которая меняет <em>траекторию.</em>
         </h2>
       </div>
-      <div className="shell award-grid">
-        <article className="award-card award-card--grand reveal">
+      <div className="shell award-grid reveal">
+        <article className="award-card award-card--grand">
           <span>Высшая награда</span>
           <strong>Гран-при</strong>
           <p>
@@ -28,7 +28,7 @@ export default function Awards() {
             PRIX
           </i>
         </article>
-        <article className="award-card award-card--money reveal">
+        <article className="award-card award-card--money">
           <span>Главный приз</span>
           <strong>Денежный приз</strong>
           <p>Вручается обладателю Гран-при конкурса.</p>
@@ -40,7 +40,7 @@ export default function Awards() {
             loading="lazy"
           />
         </article>
-        <article className="award-card reveal">
+        <article className="award-card">
           <span>Лауреаты</span>
           <strong>I, II и III степени</strong>
           <p>
@@ -48,7 +48,7 @@ export default function Awards() {
             электронный диплом каждому участнику.
           </p>
         </article>
-        <article className="award-card reveal">
+        <article className="award-card">
           <span>Дипломанты</span>
           <strong>Награда каждому участнику</strong>
           <p>
@@ -56,7 +56,7 @@ export default function Awards() {
             электронный диплом.
           </p>
         </article>
-        <article className="award-card reveal">
+        <article className="award-card award-card--special">
           <span>Особое признание</span>
           <strong>Призы жюри и партнёров</strong>
           <p>Специальные награды и благодарности руководителям и педагогам.</p>

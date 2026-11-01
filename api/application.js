@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { defaultSiteSettings, eventRange } from "../shared/site-settings.js";
 
 import {
   validateApplication,
@@ -38,8 +39,10 @@ export default async function handler(request, response) {
   }
 
   const data = normalizeApplication(request.body);
+  const { event, venue, contacts } = request.siteSettings || defaultSiteSettings;
+  const year = event.startDate.slice(0, 4);
   if (data.website)
-    return response.status(200).json({ applicationNumber: "TR-2027" });
+    return response.status(200).json({ applicationNumber: `TR-${year}` });
 
   const validationError = Object.values(validateApplication(request.body))[0];
   if (validationError)
@@ -52,7 +55,7 @@ export default async function handler(request, response) {
       .json({ message: "Почтовая отправка ещё не настроена." });
 
   const participantCount = Number(request.body.participantCount);
-  const applicationNumber = `TR-2027-${Date.now().toString(36).toUpperCase()}-${randomBytes(3).toString("hex").toUpperCase()}`;
+  const applicationNumber = `TR-${year}-${Date.now().toString(36).toUpperCase()}-${randomBytes(3).toString("hex").toUpperCase()}`;
   const submittedAt = new Intl.DateTimeFormat("ru-RU", {
     dateStyle: "long",
     timeStyle: "short",
@@ -61,7 +64,7 @@ export default async function handler(request, response) {
   const from =
     process.env.APPLICATION_FROM_EMAIL ||
     "Танцевальная революция <onboarding@resend.dev>";
-  const to = process.env.APPLICATION_TO_EMAIL || "akulov@media-msk.ru";
+  const to = process.env.APPLICATION_TO_EMAIL || contacts.email;
 
   const organizerHtml = `
     <div style="font-family:Arial,sans-serif;color:#10100f;max-width:760px;margin:auto">
@@ -70,17 +73,17 @@ export default async function handler(request, response) {
       <table style="width:100%;border-collapse:collapse;font-size:15px">
         ${row("Коллектив", data.collective)}${row("Конкурсный номер", data.performanceTitle)}${row("Количество участников", participantCount)}${row("Хронометраж", data.duration)}${row("Номинация", data.nomination)}${row("Возраст", data.ageCategory)}${row("Профессиональный уровень", data.professionalLevel)}${row("Участники", data.participants)}${row("Учреждение", data.institution)}${row("Страна / город", `${data.country}, ${data.city}`)}${row("Руководитель", data.director)}${row("Педагог / хореограф", data.teacher)}${row("Проживание", data.accommodation)}${row("Проживающие", data.hotelGuests)}${row("E-mail", data.email)}${row("Телефон", data.phone)}${row("Telegram", data.telegram)}${row("Комментарий", data.comment)}
       </table>
-      <p style="color:#666;font-size:12px">Заявитель подтвердил принятие Положения, согласие на обработку персональных данных и наличие согласий на фото- и видеосъёмку.</p>
+      <p style="color:#666;font-size:12px">Заявитель подтвердил принятие Положения и согласие на обработку персональных данных.</p>
     </div>`;
 
   const applicantHtml = `
     <div style="font-family:Arial,sans-serif;color:#10100f;max-width:620px;margin:auto">
-      <div style="background:#050505;color:#fff;padding:30px"><small style="color:#cbff00;text-transform:uppercase">Танцевальная революция · 2027</small><h1 style="margin:14px 0 0;font-size:34px">Заявка получена</h1></div>
+      <div style="background:#050505;color:#fff;padding:30px"><small style="color:#cbff00;text-transform:uppercase">Танцевальная революция · ${escapeHtml(year)}</small><h1 style="margin:14px 0 0;font-size:34px">Заявка получена</h1></div>
       <div style="padding:28px;border:1px solid #e2e2dc;border-top:0">
         <p>Здравствуйте! Мы получили заявку коллектива «${escapeHtml(data.collective)}» на номер «${escapeHtml(data.performanceTitle)}».</p>
         <p><strong>Номер заявки: ${applicationNumber}</strong></p>
-        <p>Оргкомитет проверит данные и направит подтверждение участия. Если ответа не будет в течение 5 дней, напишите на <a href="mailto:akulov@media-msk.ru">akulov@media-msk.ru</a> или позвоните по номеру +7 925 657-77-17.</p>
-        <p style="margin-top:28px;color:#666;font-size:13px">Москва · КЗ «Останкино» · 3–4 апреля 2027 года</p>
+        <p>Оргкомитет проверит данные и направит подтверждение участия. Если ответа не будет в течение 5 дней, напишите на <a href="mailto:${escapeHtml(contacts.email)}">${escapeHtml(contacts.email)}</a> или позвоните по номеру ${escapeHtml(contacts.phone)}.</p>
+        <p style="margin-top:28px;color:#666;font-size:13px">${escapeHtml(event.city)} · ${escapeHtml(venue.name)} · ${escapeHtml(eventRange(event.startDate, event.endDate))}</p>
       </div>
     </div>`;
 

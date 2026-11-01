@@ -1,44 +1,48 @@
+import { useSiteSettings } from "../SiteSettings.jsx";
+import { money, dayCount, daysBetween, countLabel } from "../../shared/site-settings.js";
+
 export default function Travel() {
+  const { event, hotel, prices } = useSiteSettings();
+  const stay = `${dayCount(event.arrivalDate, event.departureDate)} / ${countLabel(daysBetween(event.arrivalDate, event.departureDate), ["ночь", "ночи", "ночей"])}`;
   return (
     <section className="travel section section--dark" id="travel">
       <div className="shell section-heading">
         <p className="section-label reveal">09 / Участникам</p>
         <h2 className="display-title reveal">
-          Москва встречает <em>вас.</em>
+          {event.city} встречает <em>вас.</em>
         </h2>
         <p className="section-intro reveal">
-          Для иногородних коллективов предусмотрены проживание 4 дня / 3 ночи,
-          трёхразовое питание и транспортное обслуживание.
+          Для иногородних коллективов: проживание {stay}, {hotel.meals.toLowerCase()} и {hotel.transport.toLowerCase()}.
         </p>
       </div>
       <div className="shell hotel-gallery">
         <figure className="hotel-gallery__wide reveal parallax-media">
           <img
-            src="/assets/beta-hotel-day.webp"
-            alt="Дневной вид гостиницы «Бета Измайлово» в Москве"
+            src={hotel.image}
+            alt={hotel.name}
             width="1800"
             height="1199"
             loading="lazy"
           />
           <figcaption>
-            «Бета Измайлово» 3* · Измайловское ш., 71, корп. 2Б
+            {hotel.name} · {hotel.address}
           </figcaption>
         </figure>
         <figure className="reveal">
           <img
-            src="/assets/beta-hotel-room-v2.webp"
-            alt="Стандартный номер гостиницы «Бета Измайлово»"
+            src={hotel.roomImage}
+            alt={hotel.roomDescription}
             width="1600"
             height="1067"
             loading="lazy"
           />
-          <figcaption>Стандартный двухместный номер</figcaption>
+          <figcaption>{hotel.roomDescription}</figcaption>
         </figure>
       </div>
       <div className="shell price-grid">
         <article className="price-card price-card--lime reveal">
-          <span>Москва и Московская область</span>
-          <strong>3 500 ₽</strong>
+          <span>{event.localLabel}</span>
+          <strong>{money(prices.localFirst)}</strong>
           <small>за участника в первом номере</small>
           <ul>
             <li>Медаль каждому участнику</li>
@@ -46,27 +50,27 @@ export default function Travel() {
             <li>Фото- и видеорепортаж</li>
             <li>Фирменный мерч</li>
           </ul>
-          <p>Второй и последующий номер — 3 000 ₽ за человека.</p>
+          <p>Второй и последующий номер — {money(prices.localAdditional)} за человека.</p>
         </article>
         <article className="price-card reveal">
           <span>Иногородний участник</span>
-          <strong>19 500 ₽</strong>
+          <strong>{money(prices.travelParticipant)}</strong>
           <small>за одного участника</small>
           <ul>
-            <li>Проживание 4 дня / 3 ночи</li>
-            <li>Трёхразовое питание</li>
-            <li>Транспортное обслуживание</li>
+            <li>Проживание {stay}</li>
+            <li>{hotel.meals}</li>
+            <li>{hotel.transport}</li>
             <li>Конкурс, медаль, диплом и мерч</li>
           </ul>
         </article>
         <article className="price-card reveal">
           <span>Сопровождающий</span>
-          <strong>16 000 ₽</strong>
+          <strong>{money(prices.companion)}</strong>
           <small>за одного человека</small>
           <ul>
-            <li>Проживание 4 дня / 3 ночи</li>
-            <li>Трёхразовое питание</li>
-            <li>Транспортное обслуживание</li>
+            <li>Проживание {stay}</li>
+            <li>{hotel.meals}</li>
+            <li>{hotel.transport}</li>
             <li>Организационное сопровождение</li>
           </ul>
         </article>

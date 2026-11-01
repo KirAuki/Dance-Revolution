@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { validateApplication } from "../shared/application.js";
 import handler from "../api/application.js";
+import { defaultSiteSettings } from "../shared/site-settings.js";
 import { validApplication } from "./fixtures.js";
 
 test("duration and participant limits are enforced at both boundaries", () => {
@@ -37,11 +38,7 @@ test("hotel guests, consents, field types and untruncated field limits are valid
     }),
     {},
   );
-  for (const name of [
-    "regulationsAccepted",
-    "personalDataAccepted",
-    "mediaAccepted",
-  ]) {
+  for (const name of ["regulationsAccepted", "personalDataAccepted"]) {
     assert.ok(
       validateApplication({ ...validApplication, [name]: "true" })[name],
     );
@@ -132,6 +129,17 @@ test("API fails honestly without credentials and handles provider failures witho
   assert.equal(mail[0].length, 2);
   assert.ok(mail[0][0].html.includes("&lt;img"));
   assert.ok(!mail[0][0].html.includes("<img src=x"));
+  const settings = structuredClone(defaultSiteSettings);
+  settings.event.startDate = "2028-05-03";
+  settings.event.endDate = "2028-05-04";
+  settings.event.city = "Тула";
+  settings.contacts.email = "updated@example.com";
+  const updated = response();
+  await handler({method:"POST", body:validApplication, siteSettings:settings}, updated);
+  assert.match(updated.body.applicationNumber, /^TR-2028-/);
+  assert.ok(mail[1][1].html.includes("3–4 мая 2028"));
+  assert.ok(mail[1][1].html.includes("updated@example.com"));
+  assert.ok(!mail[1][1].html.includes("akulov@"));
   globalThis.fetch.mock.mockImplementation(async () => ({
     ok: false,
     status: 429,

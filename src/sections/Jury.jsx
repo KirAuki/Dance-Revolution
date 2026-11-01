@@ -1,4 +1,7 @@
+import { useSiteSettings } from "../SiteSettings.jsx";
+
 export default function Jury() {
+  const { jury } = useSiteSettings();
   return (
     <section className="jury section section--light" id="jury">
       <div className="shell jury__heading">
@@ -9,86 +12,33 @@ export default function Jury() {
           </h2>
         </div>
         <p className="section-intro reveal">
-          Хореографы, артисты, режиссёры и продюсеры, которые формируют
-          индустрию сегодня.
+          Хореографы, артисты, режиссёры и продюсеры, которые формируют индустрию сегодня.
         </p>
       </div>
-      <div className="shell jury__grid">
-        <article className="jury-card reveal">
-          <div
-            className="jury-card__photo"
-            style={{ "--position": "0%" }}
-            role="img"
-            aria-label="Александра Миронова"
-          ></div>
-          <span>01</span>
-          <h3>Александра Миронова</h3>
-          <strong>Хореограф-постановщик</strong>
-          <p>
-            Автор постановок для больших сценических шоу и международных
-            танцевальных проектов.
-          </p>
-        </article>
-        <article className="jury-card reveal">
-          <div
-            className="jury-card__photo"
-            style={{ "--position": "25%" }}
-            role="img"
-            aria-label="Максим Волков"
-          ></div>
-          <span>02</span>
-          <h3>Максим Волков</h3>
-          <strong>Артист и режиссёр</strong>
-          <p>
-            Эксперт по сценическому образу, драматургии номера и работе
-            исполнителя со зрителем.
-          </p>
-        </article>
-        <article className="jury-card reveal">
-          <div
-            className="jury-card__photo"
-            style={{ "--position": "50%" }}
-            role="img"
-            aria-label="Екатерина Орлова"
-          ></div>
-          <span>03</span>
-          <h3>Екатерина Орлова</h3>
-          <strong>Педагог-хореограф</strong>
-          <p>
-            Специалист по современной хореографии, технике исполнения и развитию
-            молодых артистов.
-          </p>
-        </article>
-        <article className="jury-card reveal">
-          <div
-            className="jury-card__photo"
-            style={{ "--position": "75%" }}
-            role="img"
-            aria-label="Артём Соколов"
-          ></div>
-          <span>04</span>
-          <h3>Артём Соколов</h3>
-          <strong>Креативный продюсер</strong>
-          <p>
-            Создаёт концертные программы и помогает талантам превращать сильный
-            номер в событие.
-          </p>
-        </article>
-        <article className="jury-card reveal">
-          <div
-            className="jury-card__photo"
-            style={{ "--position": "100%" }}
-            role="img"
-            aria-label="Мария Белова"
-          ></div>
-          <span>05</span>
-          <h3>Мария Белова</h3>
-          <strong>Балетмейстер</strong>
-          <p>
-            Лауреат профессиональных премий, эксперт по композиции, ансамблю и
-            сценической культуре.
-          </p>
-        </article>
+      <div className="shell jury__grid" style={{ "--jury-columns": Math.min(jury.length, 5) }}>
+        {jury.map((person, index) => (
+          <article className="jury-card reveal" key={index}>
+            <div className="jury-card__photo" role="img" aria-label={person.name}>
+              <div
+                className="jury-card__portrait"
+                aria-hidden="true"
+                style={person.image
+                  ? { backgroundImage: `url("${person.image}")`, backgroundSize: "cover", backgroundPosition: "center" }
+                  : person.spriteIndex !== null
+                    ? { "--position": `${person.spriteIndex * 25}%` }
+                    : { backgroundImage: "none" }}
+              >
+                {!person.image && person.spriteIndex === null && person.name.split(/\s+/).slice(0, 2).map(part => part[0]).join("")}
+              </div>
+            </div>
+            <div className="jury-card__body">
+              <span className="jury-card__number">{String(index + 1).padStart(2, "0")}</span>
+              <h3>{person.name}</h3>
+              <strong>{person.role}</strong>
+              <p>{person.bio}</p>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
