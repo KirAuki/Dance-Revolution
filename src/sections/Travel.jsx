@@ -39,8 +39,8 @@ export default function Travel() {
           <figcaption>{hotel.roomDescription}</figcaption>
         </figure>
       </div>
-      <div className="shell price-grid">
-        <article className="price-card price-card--lime reveal">
+      <div className="shell price-grid reveal">
+        <article className="price-card price-card--lime">
           <span>{event.localLabel}</span>
           <strong>{money(prices.localFirst)}</strong>
           <small>за участника в первом номере</small>
@@ -52,7 +52,7 @@ export default function Travel() {
           </ul>
           <p>Второй и последующий номер — {money(prices.localAdditional)} за человека.</p>
         </article>
-        <article className="price-card reveal">
+        <article className="price-card">
           <span>Иногородний участник</span>
           <strong>{money(prices.travelParticipant)}</strong>
           <small>за одного участника</small>
@@ -63,7 +63,7 @@ export default function Travel() {
             <li>Конкурс, медаль, диплом и мерч</li>
           </ul>
         </article>
-        <article className="price-card reveal">
+        <article className="price-card">
           <span>Сопровождающий</span>
           <strong>{money(prices.companion)}</strong>
           <small>за одного человека</small>

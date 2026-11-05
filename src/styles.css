@@ -626,11 +626,13 @@ video {
   opacity: 0.58;
 }
 .display-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin: 0;
   font-family: Unbounded, Manrope, sans-serif;
-  font-size: clamp(42px, 6vw, 92px);
+  font-size: clamp(28px, 4.4vw, 64px);
   font-weight: 600;
-  line-height: 0.98;
+  line-height: 1.12;
   letter-spacing: -0.045em;
   text-transform: uppercase;
 }
@@ -694,9 +696,6 @@ video {
   grid-template-columns: 0.55fr 1.45fr;
   gap: 36px;
 }
-.display-title--marker {
-  line-height: 1.12;
-}
 .title-marker {
   padding-inline: 0.07em;
   color: var(--black) !important;
@@ -732,19 +731,15 @@ video {
 }
 .facts-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 90px;
-  border: 1px solid var(--line-light);
 }
 .fact {
   display: grid;
   align-content: space-between;
   min-height: 290px;
   padding: 28px;
-  border-right: 1px solid var(--line-light);
-}
-.fact:last-child {
-  border-right: 0;
+  border: 1px solid var(--line-light);
 }
 .fact strong {
   font-size: clamp(72px, 8vw, 126px);
@@ -838,7 +833,6 @@ video {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: -1px;
-  border: 1px solid var(--line-dark);
 }
 .format-grid article {
   display: grid;
@@ -846,11 +840,8 @@ video {
   grid-template-rows: subgrid;
   row-gap: 24px;
   padding: 28px;
-  border-right: 1px solid var(--line-dark);
+  border: 1px solid var(--line-dark);
   background: rgba(5, 5, 5, 0.92);
-}
-.format-grid article:last-child {
-  border-right: 0;
 }
 .format-grid span {
   color: var(--lime);
@@ -900,9 +891,6 @@ video {
   height: calc(100% + 60px);
   object-fit: cover;
   transition: transform 0.8s var(--ease);
-}
-.photo-story figure:hover img {
-  transform: scale(1.035);
 }
 .photo-story figcaption {
   position: absolute;
@@ -955,12 +943,14 @@ video {
   text-transform: uppercase;
 }
 
-.nominations__layout {
+.nominations__layout,
+.premium__layout {
   display: grid;
-  grid-template-columns: 0.78fr 1.22fr;
-  gap: clamp(50px, 8vw, 130px);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: clamp(32px, 5vw, 80px);
 }
 .nominations__intro {
+  min-width: 0;
   position: sticky;
   top: 125px;
   align-self: start;
@@ -969,6 +959,7 @@ video {
   margin-top: 28px;
 }
 .nomination-list {
+  min-width: 0;
   border-top: 1px solid rgba(5, 5, 5, 0.7);
 }
 .nomination-list details {
@@ -976,14 +967,16 @@ video {
 }
 .nomination-list summary {
   display: grid;
-  grid-template-columns: 42px 1fr auto;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  overflow-wrap: anywhere;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   min-height: 82px;
   padding: 22px 4px;
   cursor: pointer;
   list-style: none;
-  font-size: clamp(18px, 1.5vw, 24px);
+  font-size: clamp(16px, 1.2vw, 20px);
+  line-height: 1.35;
   font-weight: 700;
   letter-spacing: -0.035em;
   text-transform: uppercase;
@@ -1006,8 +999,17 @@ video {
 }
 .nomination-list details p {
   margin: 0;
-  padding: 0 52px 24px 64px;
+  padding: 0 42px 24px 50px;
   font-size: 15px;
+}
+@keyframes accordion-open {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .nomination-list details[open] > p {
+    animation: accordion-open 0.25s var(--ease);
+  }
 }
 
 .age-strip {
@@ -1033,6 +1035,10 @@ video {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 60px;
 }
+.facts-grid,
+.format-grid,
+.price-grid,
+.timeline__grid,
 .age-strip,
 .criteria-grid,
 .award-grid,
@@ -1040,6 +1046,10 @@ video {
   /* Collapse complete cell borders into shared one-pixel seams, including partial rows. */
   padding: 1px 0 0 1px;
 }
+.facts-grid.reveal,
+.price-grid.reveal,
+.timeline__grid.reveal,
+.news-content.reveal,
 .age-strip.reveal,
 .format-grid.reveal,
 .criteria-grid.reveal,
@@ -1047,6 +1057,10 @@ video {
   transform: none;
   transition: opacity 0.65s var(--ease);
 }
+.fact,
+.format-grid article,
+.price-card,
+.timeline__grid article,
 .age-strip span,
 .criteria-card,
 .award-card,
@@ -1200,12 +1214,9 @@ video {
   grid-column: 1;
 }
 
-.premium__layout {
-  display: grid;
-  grid-template-columns: 0.8fr 1.2fr;
-  gap: clamp(70px, 9vw, 150px);
-}
 .premium__sticky {
+  min-width: 0;
+  overflow-wrap: anywhere;
   position: sticky;
   top: 125px;
   align-self: start;
@@ -1214,6 +1225,7 @@ video {
   margin-top: 26px;
 }
 .premium-list {
+  min-width: 0;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1222,10 +1234,10 @@ video {
 }
 .premium-list li {
   display: grid;
-  grid-template-columns: 56px 1fr;
+  grid-template-columns: 36px minmax(0, 1fr);
   align-items: start;
-  min-height: 132px;
-  padding: 28px 0;
+  min-height: 112px;
+  padding: 24px 0;
   border-bottom: 1px solid var(--line-light);
 }
 .premium-list span {
@@ -1234,10 +1246,11 @@ video {
   font-weight: 800;
 }
 .premium-list strong {
+  overflow-wrap: anywhere;
   max-width: 650px;
-  font-size: clamp(24px, 2.5vw, 40px);
+  font-size: clamp(18px, 1.65vw, 28px);
   font-weight: 500;
-  line-height: 1.08;
+  line-height: 1.2;
   letter-spacing: -0.05em;
   text-transform: uppercase;
 }
@@ -1258,6 +1271,9 @@ video {
 }
 .jury-card {
   position: relative;
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
   padding: 0 18px 28px;
   border: 1px solid var(--line-light);
   background: var(--white);
@@ -1293,26 +1309,57 @@ video {
     filter 0.4s var(--ease);
 }
 .jury-card__body {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
   transition:
     opacity 0.65s var(--ease) 0.08s,
     transform 0.65s var(--ease) 0.08s;
 }
-.jury-card__number {
-  color: #777772;
-  font-size: 11px;
+.jury-card__portrait--placeholder {
+  container-type: inline-size;
+  background:
+    linear-gradient(135deg, transparent 49.8%, rgba(174, 255, 0, 0.12) 50%, transparent 50.2%),
+    radial-gradient(ellipse at center, #202b0c 0%, #090b06 65%);
+  filter: none;
+}
+.jury-card__question {
+  margin-top: -0.1em;
+  font-family: Unbounded, Manrope, sans-serif;
+  font-size: 62cqw;
   font-weight: 800;
+  line-height: 1;
+  color: var(--lime);
+  text-shadow: 7px 7px 0 #384a11;
+}
+.jury-card__teaser {
+  position: absolute;
+  right: 18px;
+  bottom: 22px;
+  left: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(174, 255, 0, 0.25);
+  color: var(--lime);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-align: center;
+  text-transform: uppercase;
 }
 .jury-card h3 {
-  margin: 22px 0 4px;
+  min-height: 2.3em;
+  margin: 0 0 12px;
   font-size: clamp(18px, 1.4vw, 24px);
-  line-height: 1.03;
+  line-height: 1.15;
   letter-spacing: -0.05em;
   text-transform: uppercase;
   transition: color 0.35s var(--ease);
 }
+.jury-card__name > span {
+  display: block;
+}
 .jury-card strong {
   display: block;
-  min-height: 38px;
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1346,6 +1393,10 @@ video {
   }
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .photo-story figure:hover img,
+  .hotel-gallery figure:hover img {
+    transform: scale(1.035);
+  }
   .jury-card.is-visible:hover .jury-card__portrait {
     transform: scale(1.04);
   }
@@ -1376,7 +1427,6 @@ video {
     filter 0.7s;
 }
 .hotel-gallery figure:hover img {
-  transform: scale(1.035);
   filter: saturate(1.08);
 }
 .hotel-gallery figcaption {
@@ -1392,19 +1442,17 @@ video {
 }
 .price-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 70px;
-  border: 1px solid var(--line-dark);
 }
 .price-card {
   display: grid;
+  grid-row: span 5;
+  grid-template-rows: subgrid;
   min-height: 560px;
   align-content: start;
   padding: 32px;
-  border-right: 1px solid var(--line-dark);
-}
-.price-card:last-child {
-  border-right: 0;
+  border: 1px solid var(--line-dark);
 }
 .price-card > span {
   min-height: 42px;
@@ -1418,6 +1466,7 @@ video {
   font-size: clamp(52px, 5vw, 80px);
   line-height: 0.9;
   letter-spacing: -0.08em;
+  overflow-wrap: anywhere;
 }
 .price-card small {
   margin-top: 10px;
@@ -1442,8 +1491,8 @@ video {
   color: var(--lime);
 }
 .price-card p {
-  margin: auto 0 0;
-  padding-top: 30px;
+  margin: 30px 0 0;
+  padding-top: 24px;
   border-top: 1px solid currentColor;
   font-size: 14px;
 }
@@ -1466,19 +1515,16 @@ video {
 
 .timeline__grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-top: 70px;
-  border: 1px solid var(--line-light);
 }
 .timeline__grid article {
   display: grid;
-  min-height: 330px;
-  align-content: space-between;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  row-gap: 24px;
   padding: 28px;
-  border-right: 1px solid var(--line-light);
-}
-.timeline__grid article:last-child {
-  border-right: 0;
+  border: 1px solid var(--line-light);
 }
 .timeline__grid time {
   font-size: 13px;
@@ -1487,14 +1533,13 @@ video {
   text-transform: uppercase;
 }
 .timeline__grid strong {
-  margin-top: auto;
   font-size: clamp(34px, 3vw, 52px);
-  line-height: 0.9;
+  line-height: 1.05;
   letter-spacing: -0.06em;
   text-transform: uppercase;
 }
 .timeline__grid p {
-  margin: 24px 0 0;
+  margin: 0;
   font-size: 14px;
 }
 
@@ -1560,6 +1605,10 @@ video {
   overflow: hidden;
   border: 1px solid var(--line-dark);
   background: var(--black-soft);
+  transition: border-color 0.25s var(--ease);
+}
+.news-card:focus-within {
+  border-color: var(--lime);
 }
 .news-card__link {
   display: flex;
@@ -1595,6 +1644,7 @@ video {
   font-size: clamp(21px, 2vw, 28px);
   line-height: 1.3;
   overflow-wrap: anywhere;
+  transition: color 0.25s var(--ease);
 }
 .news-card p {
   margin: 0;
@@ -1606,7 +1656,9 @@ video {
   margin-top: auto;
 }
 .news-card__link:hover h2,
-.news-card__link:hover h3 {
+.news-card__link:hover h3,
+.news-card__link:focus-visible h2,
+.news-card__link:focus-visible h3 {
   color: var(--lime);
 }
 .news-empty {
@@ -1791,7 +1843,7 @@ video {
 }
 .application__layout {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   align-items: start;
   gap: clamp(40px, 5vw, 80px);
 }
@@ -1803,8 +1855,6 @@ video {
 }
 .application__intro .display-title {
   margin-top: 28px;
-  font-size: clamp(34px, 3.2vw, 50px);
-  line-height: 1.08;
 }
 .application__meta {
   display: grid;
@@ -2298,12 +2348,6 @@ video {
   .format-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .format-grid article:nth-child(2) {
-    border-right: 0;
-  }
-  .format-grid article:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--line-dark);
-  }
   .site-header__inner {
     grid-template-columns: 160px 1fr auto;
     gap: 18px;
@@ -2394,7 +2438,7 @@ video {
   .premium__layout,
   .conditions__layout,
   .application__layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .section-heading .section-intro {
     grid-column: 1;
@@ -2407,13 +2451,7 @@ video {
     gap: 36px;
   }
   .facts-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .fact:nth-child(2) {
-    border-right: 0;
-  }
-  .fact:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--line-light);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .photo-story {
     grid-template-columns: 1fr 1fr;
@@ -2469,23 +2507,9 @@ video {
   }
   .price-card {
     min-height: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--line-dark);
-  }
-  .price-card:last-child {
-    border-bottom: 0;
-  }
-  .price-card p {
-    margin-top: 50px;
   }
   .timeline__grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .timeline__grid article:nth-child(2) {
-    border-right: 0;
-  }
-  .timeline__grid article:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--line-light);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .footer__hero {
     display: grid;
@@ -2505,11 +2529,6 @@ video {
   }
   .section {
     padding-block: 82px;
-  }
-  .display-title {
-    font-size: clamp(34px, 10.6vw, 54px);
-    line-height: 1;
-    letter-spacing: -0.045em;
   }
   .section-intro {
     font-size: 17px;
@@ -2598,11 +2617,6 @@ video {
   }
   .fact {
     min-height: 210px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line-light);
-  }
-  .fact:last-child {
-    border-bottom: 0;
   }
   .stage__visual {
     height: 120vw;
@@ -2623,8 +2637,6 @@ video {
   }
   .format-grid article {
     padding: 24px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line-dark);
   }
   .photo-story {
     grid-template-columns: 1fr;
@@ -2635,16 +2647,17 @@ video {
     grid-column: auto;
     height: 92vw;
   }
-  .nominations__layout {
-    gap: 48px;
+  .nominations__layout,
+  .premium__layout {
+    gap: 40px;
   }
   .nomination-list summary {
     min-height: 96px;
     padding-block: 18px;
-    font-size: 17px;
+    font-size: 16px;
   }
   .nomination-list details p {
-    padding-left: 60px;
+    padding-left: 50px;
   }
   .age-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2675,7 +2688,7 @@ video {
     height: 62%;
   }
   .premium-list li {
-    grid-template-columns: 40px 1fr;
+    grid-template-columns: 32px minmax(0, 1fr);
   }
   .jury__grid {
     grid-template-columns: 1fr;
@@ -2705,14 +2718,6 @@ video {
   .timeline__grid {
     grid-template-columns: 1fr;
     margin-top: 48px;
-  }
-  .timeline__grid article {
-    min-height: 260px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line-light);
-  }
-  .timeline__grid article:last-child {
-    border-bottom: 0;
   }
   .form-row {
     grid-template-columns: 1fr;
@@ -2790,6 +2795,7 @@ video {
   padding: clamp(70px, 10vw, 140px) 0;
 }
 .legal-main h1 {
+  overflow-wrap: anywhere;
   max-width: 900px;
   margin: 26px 0 32px;
   font-family: Unbounded, Manrope, sans-serif;
@@ -2808,7 +2814,7 @@ video {
 }
 .legal-main section {
   display: grid;
-  grid-template-columns: 190px 1fr;
+  grid-template-columns: 190px minmax(0, 1fr);
   gap: 35px;
   padding: 30px 0;
   border-top: 1px solid var(--line-light);
@@ -2821,6 +2827,7 @@ video {
   text-transform: uppercase;
 }
 .legal-main p {
+  overflow-wrap: anywhere;
   margin: 0;
   color: #4b4b47;
   font-size: 17px;
@@ -2855,9 +2862,6 @@ video {
   }
   .legal-main {
     width: min(100% - 28px, 920px);
-  }
-  .legal-main h1 {
-    overflow-wrap: anywhere;
   }
   .legal-main section {
     grid-template-columns: 1fr;

@@ -19,7 +19,7 @@ export default function Accordion({
           >
             {numbered && <span>{String(index + 1).padStart(2, "0")}</span>}
             {item.title}
-            <i>+</i>
+            <i aria-hidden="true">+</i>
           </summary>
           <p>{item.description}</p>
         </details>

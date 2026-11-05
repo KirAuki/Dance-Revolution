@@ -82,11 +82,11 @@ export const defaultSiteSettings = {
     { title: "Выезд", text: "Завтрак и выселение из гостиницы до 12:00." },
   ],
   jury: [
-    { name: "Александра Миронова", role: "Хореограф-постановщик", bio: "Автор постановок для больших сценических шоу и международных танцевальных проектов.", image: "", spriteIndex: 0 },
-    { name: "Максим Волков", role: "Артист и режиссёр", bio: "Эксперт по сценическому образу, драматургии номера и работе исполнителя со зрителем.", image: "", spriteIndex: 1 },
-    { name: "Екатерина Орлова", role: "Педагог-хореограф", bio: "Специалист по современной хореографии, технике исполнения и развитию молодых артистов.", image: "", spriteIndex: 2 },
-    { name: "Артём Соколов", role: "Креативный продюсер", bio: "Создаёт концертные программы и помогает талантам превращать сильный номер в событие.", image: "", spriteIndex: 3 },
-    { name: "Мария Белова", role: "Балетмейстер", bio: "Лауреат профессиональных премий, эксперт по композиции, ансамблю и сценической культуре.", image: "", spriteIndex: 4 },
+    { name: "Скоро объявим", role: "Член жюри", bio: "", image: "", spriteIndex: null },
+    { name: "Ильдар Гайнутдинов", role: "Член жюри", bio: "", image: "/assets/jury/ildar.webp", spriteIndex: null },
+    { name: "Егор Дружинин", role: "Член жюри", bio: "", image: "/assets/jury/druzhinin.webp", spriteIndex: null },
+    { name: "Дима Щебет", role: "Член жюри", bio: "", image: "/assets/jury/shebet.webp", spriteIndex: null },
+    { name: "Скоро объявим", role: "Член жюри", bio: "", image: "", spriteIndex: null },
   ],
 };
 
@@ -109,6 +109,7 @@ function fieldValue(value, field) {
   }
   if (typeof value !== "string") fail();
   value = value.trim();
+  if (!value && field.optional) return "";
   if (!value || value.length > (field.maxLength || 2048) || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value)) fail();
   if (field.type === "date" && !validDate(value)) fail();
   if (field.type === "email" && (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(value) || value.length > 254)) fail();
@@ -148,7 +149,7 @@ export function validateSiteSettings(input) {
     return {
       name: fieldValue(item.name, { label: "Имя члена жюри", maxLength: 120 }),
       role: fieldValue(item.role, { label: "Должность члена жюри", maxLength: 180 }),
-      bio: fieldValue(item.bio, { label: "Описание члена жюри", maxLength: 1000 }),
+      bio: fieldValue(item.bio, { label: "Описание члена жюри", maxLength: 1000, optional: true }),
       image: item.image, spriteIndex: item.spriteIndex,
     };
   });

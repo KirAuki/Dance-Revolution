@@ -27,20 +27,20 @@ export default function About() {
           </div>
         </div>
       </div>
-      <div className="shell facts-grid">
-        <article className="fact reveal">
+      <div className="shell facts-grid reveal">
+        <article className="fact">
           <Counter value={days} suffix="" />
           <span>{countLabel(days, ["конкурсный день", "конкурсных дня", "конкурсных дней"]).replace(/^\d+ /, "")}</span>
         </article>
-        <article className="fact reveal">
+        <article className="fact">
           <Counter value={15} suffix="+" />
           <span>направлений</span>
         </article>
-        <article className="fact reveal">
+        <article className="fact">
           <Counter value={7} suffix="" />
           <span>возрастных категорий</span>
         </article>
-        <article className="fact fact--dark reveal">
+        <article className="fact fact--dark">
           <strong>5+</strong>
           <span>участников в коллективе</span>
         </article>

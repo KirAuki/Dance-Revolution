@@ -33,7 +33,7 @@ export default function Conditions() {
             <span>Замена репертуара</span>
             <strong>не позднее чем за {countLabel(prices.replacementDays, ["день", "дня", "дней"])}</strong>
             <p>
-              При поздней замене взимается дополнительный организационный взнос
+              При поздней замене взимается дополнительный организационный взнос&nbsp; 
               {money(prices.lateChange)}.
             </p>
           </article>

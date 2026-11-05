@@ -24,6 +24,11 @@ export default function Header() {
   useEffect(() => {
     document.body.classList.toggle("menu-open", open);
     if (!open) return;
+    const background = [...document.querySelectorAll("main, footer")].map(
+      (node) => ({ node, inert: node.inert }),
+    );
+    background.forEach(({ node }) => { node.inert = true; });
+    menuRef.current.focus({ preventScroll: true });
     const onKey = (event) => {
       if (event.key === "Escape") {
         setOpen(false);
@@ -33,15 +38,13 @@ export default function Header() {
         const focusable = [
           ...headerRef.current.querySelectorAll("a, button"),
         ].filter((node) => node.getClientRects().length);
-        const first = focusable[0],
-          last = focusable.at(-1);
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
+        if (!focusable.length) return;
+        event.preventDefault();
+        const current = focusable.indexOf(document.activeElement);
+        const next = event.shiftKey
+          ? (current <= 0 ? focusable.length - 1 : current - 1)
+          : (current + 1) % focusable.length;
+        focusable[next].focus();
       }
     };
     const onResize = () => {
@@ -50,6 +53,7 @@ export default function Header() {
     document.addEventListener("keydown", onKey);
     window.addEventListener("resize", onResize);
     return () => {
+      background.forEach(({ node, inert }) => { node.inert = inert; });
       document.body.classList.remove("menu-open");
       document.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", onResize);
@@ -120,7 +124,18 @@ export default function Header() {
                 href={`#${id}`}
                 className={active === id ? "is-current" : undefined}
                 aria-current={active === id ? "location" : undefined}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  if (open) requestAnimationFrame(() => {
+                    // Move keyboard focus to the destination after the menu releases it.
+                    const section = document.getElementById(id);
+                    const target = section?.querySelector("h2") || section;
+                    if (target) {
+                      target.tabIndex = -1;
+                      target.focus({ preventScroll: true });
+                    }
+                  });
+                }}
               >
                 {label}
               </a>
@@ -151,6 +166,8 @@ export default function Header() {
         className={`back-to-top${showTop ? " is-visible" : ""}`}
         href="#top"
         aria-label="Вернуться в начало страницы"
+        tabIndex={showTop && !open ? 0 : -1}
+        aria-hidden={!showTop || open}
       >
         <ArrowIcon direction="up" />
       </a>

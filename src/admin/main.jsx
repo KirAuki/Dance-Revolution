@@ -10,21 +10,36 @@ async function request(url, { method = "GET", data, csrf, file } = {}) {
   if (csrf) headers["X-CSRF-Token"] = csrf;
   if (file) headers["Content-Type"] = file.type || "application/octet-stream";
   else if (data) headers["Content-Type"] = "application/json";
-  const response = await fetch(url, {
-    method,
-    credentials: "same-origin",
-    headers,
-    body: file || (data ? JSON.stringify(data) : undefined),
-  });
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const error = new Error(
-      result.message || "Не удалось выполнить запрос. Проверьте соединение.",
-    );
-    error.status = response.status;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  try {
+    const response = await fetch(url, {
+      method,
+      credentials: "same-origin",
+      headers,
+      body: file || (data ? JSON.stringify(data) : undefined),
+      signal: controller.signal,
+    });
+    const result = await response.json().catch(() => null);
+    if (!response.ok) {
+      const error = new Error(
+        result?.message || "Не удалось выполнить запрос. Проверьте соединение.",
+      );
+      error.status = response.status;
+      throw error;
+    }
+    if (!result || typeof result !== "object" || Array.isArray(result))
+      throw new Error("Сервер вернул некорректный ответ. Введённые данные остались в форме; проверьте состояние записи перед повторной отправкой.");
+    return result;
+  } catch (error) {
+    if (controller.signal.aborted)
+      throw new Error("Сервер не ответил вовремя. Проверьте, сохранились ли изменения, прежде чем повторять запрос.");
+    if (error instanceof TypeError)
+      throw new Error("Нет связи с сервером. Проверьте подключение к интернету.");
     throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-  return result;
 }
 
 function Brand() {

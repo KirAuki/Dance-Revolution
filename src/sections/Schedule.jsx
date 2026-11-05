@@ -12,9 +12,9 @@ export default function Schedule() {
           {dayCount(event.arrivalDate, event.departureDate, true)} <em className="title-black">в ритме танца.</em>
         </h2>
       </div>
-      <div className="shell timeline__grid">
+      <div className="shell timeline__grid reveal">
         {program.map((item, index) => (
-          <article className="reveal" key={index}>
+          <article key={index}>
             <time dateTime={dates[index]}>{eventDate(dates[index], {padded: true})}</time>
             <strong>{item.title}</strong>
             <p>{item.text}</p>

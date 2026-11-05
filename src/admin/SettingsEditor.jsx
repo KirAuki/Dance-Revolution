@@ -22,7 +22,7 @@ function SettingField({ field, value, name, onChange, onUpload }) {
     );
   }
   const attributes = {
-    name, required: true, value,
+    name, required: !field.optional, value,
     maxLength: field.maxLength || (type === "email" ? 254 : type === "tel" ? 40 : 2048),
     onChange: event => onChange(type === "number" && event.target.value !== "" ? Number(event.target.value) : event.target.value),
   };
@@ -82,7 +82,7 @@ export default function SettingsEditor({ record, dirty, busy, onChange, onSave, 
       </section>
       <section className="cms-panel" id="settings-jury">
         <h2>Жюри</h2>
-        <p className="cms-muted">Имена, должности, описания и фотографии. Порядок карточек соответствует порядку в этом списке.</p>
+        <p className="cms-muted">Порядок карточек соответствует этому списку. Описание можно добавить позже. Вместо отсутствующей фотографии показывается знак вопроса.</p>
         {settings.jury.map((person, index) => <div className="cms-settings-item" key={index}>
           <div className="cms-settings-item__heading">
             <h3>Член жюри {index + 1}</h3>
@@ -93,7 +93,7 @@ export default function SettingsEditor({ record, dirty, busy, onChange, onSave, 
             </div>
           </div>
           <div className="cms-settings-fields">
-            {[{key:"name",label:"Имя",maxLength:120},{key:"role",label:"Должность",maxLength:180},{key:"bio",label:"Описание",type:"textarea",maxLength:1000}].map(field =>
+            {[{key:"name",label:"Имя",maxLength:120},{key:"role",label:"Должность",maxLength:180},{key:"bio",label:"Описание (необязательно)",type:"textarea",maxLength:1000,optional:true}].map(field =>
               <SettingField key={field.key} field={field} name={`jury.${index}.${field.key}`} value={person[field.key]} onChange={value => updateItem("jury", index, {[field.key]: value})} />)}
             <SettingField field={{label:"Фотография",type:"image"}} name={`jury.${index}.image`} value={person.image} onUpload={onUpload} onChange={image => updateItem("jury", index, {image, spriteIndex:null})} />
             {!person.image && person.spriteIndex !== null && <div className="cms-settings-image" role="img" aria-label={person.name}

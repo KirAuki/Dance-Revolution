@@ -1,5 +1,15 @@
 import { useSiteSettings } from "../SiteSettings.jsx";
 
+function JuryName({ name }) {
+  const [first, ...rest] = name.trim().split(/\s+/);
+  return (
+    <h3 className="jury-card__name">
+      <span>{first}</span>
+      {rest.length > 0 && <> <span>{rest.join(" ")}</span></>}
+    </h3>
+  );
+}
+
 export default function Jury() {
   const { jury } = useSiteSettings();
   return (
@@ -20,22 +30,26 @@ export default function Jury() {
           <article className="jury-card reveal" key={index}>
             <div className="jury-card__photo" role="img" aria-label={person.name}>
               <div
-                className="jury-card__portrait"
+                className={`jury-card__portrait${!person.image && person.spriteIndex === null ? " jury-card__portrait--placeholder" : ""}`}
                 aria-hidden="true"
                 style={person.image
-                  ? { backgroundImage: `url("${person.image}")`, backgroundSize: "cover", backgroundPosition: "center" }
+                  ? { backgroundImage: `url("${person.image}")`, backgroundSize: "cover", backgroundPosition: "center top" }
                   : person.spriteIndex !== null
                     ? { "--position": `${person.spriteIndex * 25}%` }
-                    : { backgroundImage: "none" }}
+                    : undefined}
               >
-                {!person.image && person.spriteIndex === null && person.name.split(/\s+/).slice(0, 2).map(part => part[0]).join("")}
+                {!person.image && person.spriteIndex === null && (
+                  <>
+                    <span className="jury-card__question">?</span>
+                    <span className="jury-card__teaser">Новое имя</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="jury-card__body">
-              <span className="jury-card__number">{String(index + 1).padStart(2, "0")}</span>
-              <h3>{person.name}</h3>
+              <JuryName name={person.name} />
               <strong>{person.role}</strong>
-              <p>{person.bio}</p>
+              {person.bio && <p>{person.bio}</p>}
             </div>
           </article>
         ))}
