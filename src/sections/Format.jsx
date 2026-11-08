@@ -13,15 +13,11 @@ export default function Format() {
       </div>
       <div className="shell stage__visual reveal parallax-media">
         <img
-          src="/assets/dancers-stage.webp"
+          src="/assets/dancers-stage.webp?v=2026-11-07"
           alt="Хореографический коллектив выступает на современной сцене"
           width="1600"
           height="900"
         />
-        <div className="stage__stamp" aria-hidden="true">
-          <span>{event.startDate.slice(8)}</span>
-          <strong>{eventDate(event.startDate).split(" ")[1]}</strong>
-        </div>
         <div className="stage__caption">
           <span>КОНКУРСНАЯ ПРОГРАММА</span>
           <strong>до 4 минут на номер</strong>

@@ -139,7 +139,7 @@ test("API fails honestly without credentials and handles provider failures witho
   assert.match(updated.body.applicationNumber, /^TR-2028-/);
   assert.ok(mail[1][1].html.includes("3–4 мая 2028"));
   assert.ok(mail[1][1].html.includes("updated@example.com"));
-  assert.ok(!mail[1][1].html.includes("akulov@"));
+  assert.ok(!mail[1][1].html.includes(defaultSiteSettings.contacts.email));
   globalThis.fetch.mock.mockImplementation(async () => ({
     ok: false,
     status: 429,

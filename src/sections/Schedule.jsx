@@ -15,9 +15,16 @@ export default function Schedule() {
       <div className="shell timeline__grid reveal">
         {program.map((item, index) => (
           <article key={index}>
-            <time dateTime={dates[index]}>{eventDate(dates[index], {padded: true})}</time>
+            <time dateTime={dates[index]}>{eventDate(dates[index], {padded: true, year: true})}</time>
             <strong>{item.title}</strong>
-            <p>{item.text}</p>
+            <div className="timeline__details">
+              <ul className="timeline__events">
+                {item.text.split(/\r?\n/).map(line => line.trim()).filter(Boolean).map((line, lineIndex) => (
+                  <li key={lineIndex}>{line}</li>
+                ))}
+              </ul>
+              {item.note && <p className="timeline__note"><b>Важно</b>{item.note}</p>}
+            </div>
           </article>
         ))}
       </div>

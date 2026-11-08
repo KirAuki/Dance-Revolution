@@ -1,3 +1,5 @@
+import { defaultSitePages, validateSitePages } from "./site-pages.js";
+
 // The same field definitions drive validation and the admin form.
 export const settingsGroups = [
   { key: "event", title: "Даты и город", fields: [
@@ -16,8 +18,6 @@ export const settingsGroups = [
     { key: "travelParticipant", label: "Иногородний участник, ₽", type: "number", min: 0, max: 10000000 },
     { key: "companion", label: "Сопровождающий, ₽", type: "number", min: 0, max: 10000000 },
     { key: "premium", label: "Премия в каждой номинации, ₽", type: "number", min: 0, max: 10000000 },
-    { key: "lateChange", label: "Поздняя замена репертуара, ₽", type: "number", min: 0, max: 10000000 },
-    { key: "replacementDays", label: "Замена репертуара без доплаты, дней до конкурса", type: "number", min: 0, max: 365 },
   ] },
   { key: "venue", title: "Площадка", fields: [
     { key: "name", label: "Название площадки", maxLength: 180 },
@@ -39,25 +39,31 @@ export const settingsGroups = [
     { key: "email", label: "E-mail оргкомитета", type: "email" },
     { key: "phone", label: "Телефон оргкомитета", type: "tel" },
     { key: "hours", label: "Время работы", maxLength: 120 },
-    { key: "tracksEmail", label: "E-mail для фонограмм", type: "email" },
     { key: "telegramUrl", label: "Ссылка на Telegram", type: "url" },
-    { key: "telegramLabel", label: "Подпись ссылки Telegram", maxLength: 100 },
+    { key: "instagramUrl", label: "Ссылка на Instagram", type: "url", optional: true },
+    { key: "vkUrl", label: "Ссылка на VK", type: "url", optional: true },
     { key: "maxUrl", label: "Ссылка на MAX", type: "url" },
-    { key: "maxLabel", label: "Подпись ссылки MAX", maxLength: 100 },
+    { key: "whatsappUrl", label: "Ссылка на WhatsApp", type: "url", optional: true },
   ] },
   { key: "documents", title: "Документы", fields: [
     { key: "regulations", label: "Положение конкурса", type: "document" },
+  ] },
+  { key: "news", title: "Страница новостей", fields: [
+    { key: "title", label: "Заголовок страницы", maxLength: 160 },
+    { key: "lead", label: "Вступление", type: "textarea", maxLength: 1000 },
+    { key: "emptyTitle", label: "Заголовок, пока нет публикаций", maxLength: 160 },
+    { key: "emptyText", label: "Текст, пока нет публикаций", type: "textarea", maxLength: 1000 },
   ] },
 ];
 
 export const defaultSiteSettings = {
   event: {
-    startDate: "2027-04-03", endDate: "2027-04-04",
-    arrivalDate: "2027-04-02", departureDate: "2027-04-05",
+    startDate: "2027-07-03", endDate: "2027-07-04",
+    arrivalDate: "2027-07-02", departureDate: "2027-07-05",
     localDeadline: "2027-03-29", travelDeadline: "2027-03-22",
     city: "Москва", localLabel: "Москва и Московская область",
   },
-  prices: { localFirst: 3500, localAdditional: 3000, travelParticipant: 19500, companion: 16000, premium: 10000, lateChange: 2000, replacementDays: 7 },
+  prices: { localFirst: 3500, localAdditional: 3000, travelParticipant: 19500, companion: 16000, premium: 10000 },
   venue: {
     name: "Концертный зал «Останкино»", address: "ул. Академика Королёва, 15, корп. 2",
     description: "Конкурс пройдёт в одном из самых узнаваемых телевизионных районов Москвы.",
@@ -70,22 +76,60 @@ export const defaultSiteSettings = {
     image: "/assets/beta-hotel-day.webp", roomImage: "/assets/beta-hotel-room-v2.webp",
   },
   contacts: {
-    email: "akulov@media-msk.ru", phone: "+7 925 657-77-17", hours: "ежедневно с 11:00 до 20:00",
-    tracksEmail: "dance@revolution-msk.ru", telegramUrl: "https://t.me/dancermsk", telegramLabel: "Telegram @dancermsk",
-    maxUrl: "https://max.ru/+79256577717", maxLabel: "MAX +7 925 657-77-17",
+    email: "dance@revolution-msk.ru", phone: "+7 925 657-77-17", hours: "ежедневно с 11:00 до 20:00",
+    telegramUrl: "https://t.me/dancermsk",
+    instagramUrl: "https://www.instagram.com/dances.revolution/?hl=ru",
+    vkUrl: "https://vk.ru/dancesrevolution",
+    maxUrl: "https://max.ru/+79256577717",
+    whatsappUrl: "https://wa.me/79256577717",
   },
   documents: { regulations: "/docs/polozhenie-tancevalnaya-revolyutsiya-2027.docx" },
+  pages: defaultSitePages,
+  news: {
+    title: "Новости и статьи",
+    lead: "Анонсы конкурса, события и полезные материалы для участников и руководителей коллективов.",
+    emptyTitle: "Первые публикации уже впереди.",
+    emptyText: "Здесь появятся новости конкурса и полезные материалы для участников.",
+  },
   program: [
-    { title: "Заезд", text: "Прибытие, заселение с 14:00, регистрация и организационная встреча." },
-    { title: "Конкурс", text: "Торжественное открытие и первый день конкурсной программы." },
-    { title: "Финал", text: "Продолжение программы, церемония награждения и Гала-концерт." },
-    { title: "Выезд", text: "Завтрак и выселение из гостиницы до 12:00." },
+    {
+      title: "Заезд",
+      text: "Заезд\nРасселение\nРегистрация\nПланёрка для руководителей и педагогов (ОНЛАЙН)\nУжин",
+      note: "",
+    },
+    {
+      title: "Конкурс",
+      text: "Завтрак\nТоржественная церемония открытия конкурса\nКонкурсная программа\nПознавательная детская экскурсия «О высоком и не только» в телебашне «Останкино»\nОбед в КЗ «Останкино»\nУжин\nКруглый стол с членами жюри (ОНЛАЙН)",
+      note: "",
+    },
+    {
+      title: "Финал",
+      text: "Завтрак\nЦеремония награждения и Гала-концерт\nОбед\nУжин",
+      note: "Для отъезда в этот день брать обратные билеты после 22:00",
+    },
+    {
+      title: "Выезд",
+      text: "Завтрак\nВыселение из отеля до 12:00",
+      note: "",
+    },
   ],
   jury: [
     { name: "Скоро объявим", role: "Член жюри", bio: "", image: "", spriteIndex: null },
-    { name: "Ильдар Гайнутдинов", role: "Член жюри", bio: "", image: "/assets/jury/ildar.webp", spriteIndex: null },
-    { name: "Егор Дружинин", role: "Член жюри", bio: "", image: "/assets/jury/druzhinin.webp", spriteIndex: null },
-    { name: "Дима Щебет", role: "Член жюри", bio: "", image: "/assets/jury/shebet.webp", spriteIndex: null },
+    {
+      name: "Ильдар Гайнутдинов", role: "Член жюри",
+      bio: "Ведущий солист Театра танца Аллы Духовой TODES, приглашённый солист Большого театра России, неоднократный победитель международных танцевальных телешоу и конкурсов.",
+      image: "/assets/jury/ildar.webp", spriteIndex: null,
+    },
+    {
+      name: "Егор Дружинин", role: "Член жюри",
+      bio: "Заслуженный артист Российской Федерации, лауреат театральной премии «Золотая Маска», хореограф и режиссёр-постановщик спектаклей и мюзиклов, наставник и член жюри шоу «Танцы» на ТНТ, член жюри проекта «Ты супер! Танцы» на НТВ, педагог по хореографии проекта «Фабрика звёзд» на Первом канале, актёр театра и кино.",
+      image: "/assets/jury/druzhinin.webp", spriteIndex: null,
+    },
+    {
+      name: "Дима Щебет", role: "Член жюри",
+      bio: "Победитель шоу «Танцы» на ТНТ, победитель чемпионата Volga Champ, основатель и художественный руководитель арт-союза FIZIKA, исполнитель одной из главных ролей в сериале «Искусство падения» (режиссёр-постановщик — Мигель).",
+      image: "/assets/jury/shebet.webp", spriteIndex: null,
+    },
     { name: "Скоро объявим", role: "Член жюри", bio: "", image: "", spriteIndex: null },
   ],
 };
@@ -125,10 +169,15 @@ function fieldValue(value, field) {
 }
 export function validateSiteSettings(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("Настройки не переданы.");
+  // Older records have no editable pages yet.
+  input = { ...input, news: input.news === undefined ? defaultSiteSettings.news : input.news };
   const settings = {};
   for (const group of settingsGroups) {
     settings[group.key] = {};
-    for (const field of group.fields) settings[group.key][field.key] = fieldValue(input[group.key]?.[field.key], field);
+    for (const field of group.fields) {
+      const value = input[group.key]?.[field.key];
+      settings[group.key][field.key] = fieldValue(value === undefined && field.optional ? "" : value, field);
+    }
   }
   const event = settings.event;
   if (event.startDate > event.endDate || event.arrivalDate > event.startDate || event.departureDate < event.endDate)
@@ -141,6 +190,8 @@ export function validateSiteSettings(input) {
   settings.program = input.program.map(item => ({
     title: fieldValue(item?.title, { label: "Название этапа программы", maxLength: 80 }),
     text: fieldValue(item?.text, { label: "Описание этапа программы", maxLength: 1000 }),
+    // Existing settings records predate the optional notice.
+    note: fieldValue(item?.note ?? "", { label: "Важное примечание к этапу", maxLength: 500, optional: true }),
   }));
   if (!Array.isArray(input.jury) || input.jury.length < 1 || input.jury.length > 12) throw new Error("Укажите от 1 до 12 членов жюри.");
   settings.jury = input.jury.map(item => {
@@ -153,6 +204,7 @@ export function validateSiteSettings(input) {
       image: item.image, spriteIndex: item.spriteIndex,
     };
   });
+  settings.pages = validateSitePages(input.pages === undefined ? defaultSitePages : input.pages);
   return settings;
 }
 export const settingsImages = settings => [settings.venue.image, settings.hotel.image, settings.hotel.roomImage, ...settings.jury.map(person => person.image)].filter(Boolean);

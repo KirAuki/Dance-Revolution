@@ -6,31 +6,74 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { openStore } from "../server/database.js";
 import { defaultSiteSettings, validateSiteSettings, eventRange, compactEventDates, daysBetween } from "../shared/site-settings.js";
-import { renderSiteShell, renderLegalPage } from "../shared/site-html.js";
+import { renderSiteShell } from "../shared/site-html.js";
+import { renderLegalPage } from "../shared/legal-html.js";
 
 test("settings validate dates, chronology, prices and uploaded resource paths", () => {
   assert.deepEqual(validateSiteSettings(defaultSiteSettings), defaultSiteSettings);
   const cases = [
     s => { s.event.startDate = "2027-02-30"; },
-    s => { s.event.endDate = "2027-04-01"; },
-    s => { s.event.localDeadline = "2027-04-04"; },
-    s => { s.event.arrivalDate = "2027-04-04"; },
+    s => { s.event.endDate = s.event.arrivalDate; },
+    s => { s.event.localDeadline = s.event.departureDate; },
+    s => { s.event.arrivalDate = s.event.endDate; },
     s => { s.prices.premium = -100; },
     s => { s.prices.localFirst = "3500"; },
     s => { s.contacts.telegramUrl = "javascript:alert(1)"; },
     s => { s.contacts.telegramUrl = "https://user:password@example.com"; },
+    s => { s.contacts.instagramUrl = "javascript:alert(1)"; },
+    s => { s.contacts.whatsappUrl = "https://user:password@example.com"; },
     s => { s.contacts.email = "a@example.com\r\nBcc: spam@example.com"; },
     s => { s.venue.image = "/assets/../../private.png"; },
     s => { s.documents.regulations = "/documents/test.html"; },
     s => { s.jury = []; },
     s => { s.jury[0] = null; },
     s => { s.program.pop(); },
+    s => { s.program[0].note = "x".repeat(501); },
+    s => { s.program[0].note = {}; },
+    s => { s.pages.privacy.sections = []; },
+    s => { s.pages.consent.title = " "; },
+    s => { s.pages.privacy.sections[0].text = "x".repeat(3001); },
   ];
   for (const mutate of cases) {
     const settings = structuredClone(defaultSiteSettings);
     mutate(settings);
     assert.throws(() => validateSiteSettings(settings));
   }
+});
+
+test("program accepts existing settings without notices and preserves event line breaks", () => {
+  const settings = structuredClone(defaultSiteSettings);
+  for (const item of settings.program) delete item.note;
+  settings.program[0].text = "Заезд\r\n\r\nРегистрация";
+  const validated = validateSiteSettings(settings);
+  assert.ok(validated.program.every(item => item.note === ""));
+  assert.equal(validated.program[0].text, "Заезд\r\n\r\nРегистрация");
+});
+
+test("older settings gain editable pages without changing existing event or contacts", () => {
+  const settings = structuredClone(defaultSiteSettings);
+  delete settings.pages;
+  delete settings.news;
+  settings.contacts.email = "existing@example.com";
+  const updated = validateSiteSettings(settings);
+  assert.equal(updated.contacts.email, settings.contacts.email);
+  assert.deepEqual(updated.event, settings.event);
+  assert.deepEqual(updated.pages, defaultSiteSettings.pages);
+  assert.deepEqual(updated.news, defaultSiteSettings.news);
+});
+
+test("older contacts retain one email and tolerate unset optional social links", () => {
+  const settings = structuredClone(defaultSiteSettings);
+  settings.contacts.tracksEmail = "legacy@example.com";
+  settings.contacts.telegramLabel = "Legacy label";
+  settings.contacts.maxLabel = "Legacy label";
+  for (const key of ["instagramUrl", "vkUrl", "whatsappUrl"]) delete settings.contacts[key];
+  const { contacts } = validateSiteSettings(settings);
+  assert.equal(contacts.email, settings.contacts.email);
+  assert.ok(!Object.hasOwn(contacts, "tracksEmail"));
+  assert.ok(!Object.hasOwn(contacts, "telegramLabel"));
+  assert.ok(!Object.hasOwn(contacts, "maxLabel"));
+  for (const key of ["instagramUrl", "vkUrl", "whatsappUrl"]) assert.equal(contacts[key], "");
 });
 
 test("date formatting handles one day, month boundaries, year boundaries and leap years", () => {
@@ -54,10 +97,10 @@ test("HTML settings preserve literal replacement characters and cannot escape th
   assert.deepEqual(JSON.parse(data), settings);
   assert.ok(html.includes("3–4 апреля 2028"));
   assert.ok(html.includes("hello$&amp;@example.com"));
-  const legal = renderLegalPage(await readFile("privacy.html", "utf8"), settings);
+  const legal = renderLegalPage("privacy", "https://example.com", "", settings);
   assert.ok(legal.includes("Документы / 2028"));
   assert.ok(legal.includes("hello$&amp;@example.com"));
-  assert.ok(!legal.includes("akulov@"));
+  assert.ok(!legal.includes(defaultSiteSettings.contacts.email));
 });
 
 test("migration adds settings to an existing v1 database without losing content or accounts", async () => {

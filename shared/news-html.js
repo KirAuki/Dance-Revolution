@@ -1,17 +1,7 @@
 import { articleUrl, formatArticleDate } from "./news.js";
 import { defaultSiteSettings } from "./site-settings.js";
 
-const escape = (value) =>
-  String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-const siteName = "Танцевальная революция";
-const arrowIcon = '<span class="arrow-icon" aria-hidden="true"></span>';
-const backArrowIcon =
-  '<span class="arrow-icon arrow-icon--left" aria-hidden="true"></span>';
+import { documentPage, escapeHtml as escape, arrowIcon, backArrowIcon } from "./page-html.js";
 
 function renderBreadcrumbs(currentPage) {
   const items = [
@@ -19,52 +9,12 @@ function renderBreadcrumbs(currentPage) {
     { label: "Новости и статьи", href: currentPage ? "/news" : undefined },
     ...(currentPage ? [{ label: currentPage }] : []),
   ];
-  return `<nav class="news-breadcrumbs" aria-label="Хлебные крошки"><ol>${items
+  return `<nav class="page-breadcrumbs" aria-label="Хлебные крошки"><ol>${items
     .map(
       (item, index) =>
-        `<li>${index ? '<span class="news-breadcrumbs__separator" aria-hidden="true">/</span>' : ""}${item.href ? `<a href="${escape(item.href)}">${index === 0 ? backArrowIcon : ""}${escape(item.label)}</a>` : `<span aria-current="page">${escape(item.label)}</span>`}</li>`,
+        `<li>${index ? '<span class="page-breadcrumbs__separator" aria-hidden="true">/</span>' : ""}${item.href ? `<a href="${escape(item.href)}">${index === 0 ? backArrowIcon : ""}${escape(item.label)}</a>` : `<span aria-current="page">${escape(item.label)}</span>`}</li>`,
     )
     .join("")}</ol></nav>`;
-}
-
-function documentPage({
-  title,
-  description,
-  url,
-  body,
-  styles,
-  noindex = false,
-  article,
-  settings = defaultSiteSettings,
-}) {
-  const schema = article
-    ? JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Article",
-        headline: article.title,
-        description: article.description,
-        datePublished: article.date,
-        mainEntityOfPage: url,
-        ...(article.image ? { image: new URL(article.image, url).href } : {}),
-        publisher: { "@type": "Organization", name: siteName },
-      }).replaceAll("<", "\\u003c")
-    : "";
-  return `<!doctype html>
-<html lang="ru"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#050505"><title>${escape(title)} — ${siteName}</title>
-<meta name="description" content="${escape(description)}"><link rel="canonical" href="${escape(url)}">
-<meta name="robots" content="${noindex ? "noindex,follow" : "index,follow"}">
-<meta property="og:type" content="${article ? "article" : "website"}"><meta property="og:title" content="${escape(title)}">
-<meta property="og:description" content="${escape(description)}"><meta property="og:url" content="${escape(url)}">
-${article?.image ? `<meta property="og:image" content="${escape(new URL(article.image, url).href)}">` : ""}
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">${styles}
-${schema ? `<script type="application/ld+json">${schema}</script>` : ""}
-</head><body class="news-page">
-<header class="news-page__header"><a class="mini-logo" href="/" aria-label="На главную"><span>ТАНЦЕВАЛЬНАЯ</span><strong>революция</strong></a><a class="button button--lime" href="/#application">Подать заявку ${arrowIcon}</a></header>
-${body}
-<footer class="news-page__footer"><span>© ${escape(settings.event.startDate.slice(0, 4))} «Танцевальная революция»</span><a href="/#news">Вернуться на сайт ${arrowIcon}</a></footer>
-</body></html>`;
 }
 
 export function renderArticle(article, siteUrl, styles, settings = defaultSiteSettings) {
@@ -86,14 +36,14 @@ ${article.image ? `<img class="article-cover" src="${escape(article.image)}" alt
 
 export function renderNewsIndex(articles, siteUrl, styles, settings = defaultSiteSettings) {
   return documentPage({
-    title: "Новости и статьи",
+    title: settings.news.title,
     description:
       "Новости конкурса «Танцевальная революция», анонсы и полезные статьи для хореографических коллективов.",
     url: new URL("/news", siteUrl).href,
     styles,
     noindex: articles.length === 0,
     settings,
-    body: `<main class="news-index shell">${renderBreadcrumbs()}<p class="section-label">Жизнь конкурса</p><h1>Новости и <em>статьи.</em></h1>
+    body: `<main class="news-index">${renderBreadcrumbs()}<p class="section-label">Жизнь конкурса</p><h1>${escape(settings.news.title)}</h1><p class="news-index__lead">${escape(settings.news.lead)}</p>
 ${
   articles.length
     ? `<div class="news-grid">${articles
@@ -106,7 +56,7 @@ ${article.image ? `<img src="${escape(article.image)}" alt="" loading="lazy" wid
 <h2>${escape(article.title)}</h2><p>${escape(article.description)}</p><span class="text-link">Читать материал ${arrowIcon}</span></div></a></article>`,
         )
         .join("")}</div>`
-    : `<div class="news-empty"><span class="news-empty__label">Скоро в ленте</span><h2>Первые публикации уже впереди.</h2><p>Здесь появятся новости конкурса и полезные материалы для участников.</p><a class="text-link" href="${escape(settings.contacts.telegramUrl)}" target="_blank" rel="noreferrer">Следить в Telegram ${arrowIcon}</a></div>`
+    : `<div class="news-empty"><span class="news-empty__label">Скоро в ленте</span><h2>${escape(settings.news.emptyTitle)}</h2><p>${escape(settings.news.emptyText)}</p><a class="text-link" href="${escape(settings.contacts.telegramUrl)}" target="_blank" rel="noreferrer">Следить в Telegram ${arrowIcon}</a></div>`
 }</main>`,
   });
 }

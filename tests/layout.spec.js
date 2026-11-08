@@ -11,7 +11,7 @@ test("joined cards keep complete borders and aligned descriptions across breakpo
     await page.setViewportSize({ width, height: 1000 });
     await settle(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth), `overflow at ${width}`).toBeLessThanOrEqual(width);
-    for (const [selector, text] of [[".jury-card", "strong"], [".criteria-card", "p"], [".timeline__grid article", "p"], [".format-grid article", "p"], [".price-card", "ul"]]) {
+    for (const [selector, text] of [[".jury-card", "strong"], [".criteria-card", "p"], [".timeline__grid article", ".timeline__details"], [".format-grid article", "p"], [".price-card", "ul"]]) {
       const measurements = await page.locator(selector).evaluateAll((cards, text) => {
         const rows = new Map();
         for (const card of cards) {

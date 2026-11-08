@@ -57,6 +57,42 @@ test("site settings require authentication and CSRF, validate input, detect conf
   assert.deepEqual((await (await f.call("/api/settings", {anonymous:true})).json()).settings, changed.settings);
 });
 
+test("editable document pages publish safely, redirect old URLs and survive restarts", async (t) => {
+  const f = await fixture(t);
+  await f.login();
+  const record = f.app().store.settings();
+  record.settings.contacts.email = "pages@example.com";
+  record.settings.pages.privacy.title = "Обработка данных";
+  record.settings.pages.privacy.sections[0].text = 'Пишите на {email}.\n\n<script>alert(1)</script>';
+  record.settings.news.title = "События конкурса";
+  assert.equal((await f.call("/api/admin/settings", { method: "PUT", data: record })).status, 200);
+  for (const route of ["/privacy.html", "/privacy/"]) {
+    const redirect = await f.call(route + "?source=footer", { anonymous: true });
+    assert.equal(redirect.status, 301);
+    assert.equal(redirect.headers.get("location"), "/privacy?source=footer");
+  }
+  const getHtml = async () => {
+    const response = await f.call("/privacy", { anonymous: true });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("cache-control"), "no-store");
+    return response.text();
+  };
+  const html = await getHtml();
+  assert.ok(html.includes("<h1>Обработка данных</h1>"));
+  assert.ok(html.includes('href="mailto:pages@example.com"'));
+  assert.ok(html.includes("<p>&lt;script&gt;alert(1)&lt;/script&gt;</p>"));
+  assert.ok(!html.includes("<script>alert(1)</script>"));
+  assert.ok((await (await f.call("/news", { anonymous: true })).text()).includes("<h1>События конкурса</h1>"));
+  assert.equal((await f.call("/consent", { anonymous: true, method: "HEAD" })).status, 200);
+  assert.equal((await f.call("/privacy", { method: "POST" })).status, 405);
+  const invalid = f.app().store.settings();
+  invalid.settings.pages.consent.sections = [];
+  assert.equal((await f.call("/api/admin/settings", { method: "PUT", data: invalid })).status, 422);
+  await f.restart();
+  assert.deepEqual(f.app().store.settings().settings.pages, record.settings.pages);
+  assert.equal((await getHtml()).match(/<main[\s\S]*<\/main>/)[0], html.match(/<main[\s\S]*<\/main>/)[0]);
+});
+
 test("settings publish uploaded photos and regulations only after saving their references", async (t) => {
   const f = await fixture(t);
   assert.equal((await f.call("/api/admin/documents", {method:"POST",anonymous:true,body:Buffer.from("%PDF-1.4\n%%EOF")})).status, 401);

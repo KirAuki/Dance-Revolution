@@ -18,6 +18,7 @@ import {
   renderNotFound,
 } from "../shared/news-html.js";
 import applicationHandler from "../api/application.js";
+import { renderLegalPage } from "../shared/legal-html.js";
 
 function checkMethod(request, response, allowed) {
   if (!allowed.includes(request.method)) {
@@ -159,6 +160,7 @@ export function createApplication({
         !pathname.startsWith("/media/") &&
         !pathname.startsWith("/documents/") &&
         !/^\/news(?:[/.]|$)/.test(pathname) &&
+        !/^\/(privacy|consent)(?:\.html|\/)?$/.test(pathname) &&
         !["/robots.txt", "/sitemap.xml", "/health"].includes(pathname)
       )
         return false;
@@ -166,6 +168,20 @@ export function createApplication({
       response.setHeader("X-Frame-Options", "DENY");
       response.setHeader("Referrer-Policy", "same-origin");
       response.setHeader("Cache-Control", "no-store");
+      const legalRoute = /^\/(privacy|consent)(\.html|\/)?$/.exec(pathname);
+      if (legalRoute) {
+        checkMethod(request, response, ["GET", "HEAD"]);
+        if (legalRoute[2]) {
+          response.writeHead(301, { Location: `/${legalRoute[1]}${url.search}` });
+          response.end();
+        } else if (request.method === "HEAD") {
+          response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+          response.end();
+        } else {
+          await sendHtml(response, renderLegalPage(legalRoute[1], originFor(request), styles, store.settings().settings));
+        }
+        return true;
+      }
       if (pathname === "/health") {
         checkMethod(request, response, ["GET"]);
         store.db.prepare("SELECT 1").get();
@@ -252,7 +268,7 @@ export function createApplication({
           return true;
         }
         requireMutation(request);
-        const body = await readJson(request, 131072);
+        const body = await readJson(request, 524288);
         if (!Number.isSafeInteger(body.version) || body.version < 1) throw new HttpError(409, "Откройте настройки заново: версия страницы устарела.");
         let settings;
         try { settings = validateSiteSettings(body.settings); }

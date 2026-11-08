@@ -34,8 +34,24 @@ test("settings editor updates the whole site and protects unsaved work, conflict
       "event.localDeadline":"2028-04-25", "event.travelDeadline":"2028-04-20",
       "event.city":"Тула", "event.localLabel":"Тула и Тульская область", "prices.localFirst":"4500",
       "contacts.email":"contest@example.com", "contacts.phone":"+7 999 123-45-67",
-      "venue.name":"Новая сцена", "jury.0.name":"Новое имя жюри", "program.0.text":"Заезд и регистрация с 15:00.",
+      "contacts.instagramUrl":"https://www.instagram.com/example/", "contacts.vkUrl":"https://vk.ru/example",
+      "contacts.whatsappUrl":"https://wa.me/79991234567",
+      "venue.name":"Новая сцена", "jury.0.name":"Новое имя жюри", "program.0.text":"Заезд и регистрация с 15:00.\n\nУжин",
+      "program.0.note":"Приготовьте документы для заселения.",
+      "pages.privacy.title":"Обработка данных",
+      "pages.privacy.sections.0.text":"Организатор конкурса.\n\nСвязаться: {email}.",
+      "pages.consent.lead":"Согласие на обработку данных для участия в конкурсе.",
+      "news.title":"События конкурса",
+      "news.lead":"Новости и материалы для участников.",
     })) await field(name).fill(value);
+    const privacy = page.locator("#settings-privacy");
+    await privacy.getByRole("button", { name: "Добавить раздел", exact: true }).click();
+    const sectionIndex = original.pages.privacy.sections.length;
+    await field(`pages.privacy.sections.${sectionIndex}.heading`).fill("Обратная связь");
+    await field(`pages.privacy.sections.${sectionIndex}.text`).fill("Напишите на {email}.");
+    await privacy.locator(".cms-settings-item").last().getByRole("button", {name:"Выше",exact:true}).click();
+    await expect(field(`pages.privacy.sections.${sectionIndex - 1}.heading`)).toHaveValue("Обратная связь");
+    await privacy.locator(".cms-settings-item").nth(sectionIndex - 1).getByRole("button", {name:"Убрать",exact:true}).click();
     await field("venue.image").setInputFiles("public/assets/dancers-stage.webp");
     await expect(page.locator("#settings-venue .cms-settings-image")).toHaveAttribute("src", /^\/media\//);
     const picture = await page.locator("#settings-venue .cms-settings-image").getAttribute("src");
@@ -54,8 +70,14 @@ test("settings editor updates the whole site and protects unsaved work, conflict
     await expect(home.locator(".hero__meta")).toContainText("3–4 мая 2028");
     await expect(home.locator(".application__meta")).toContainText("3–4 мая 2028");
     await expect(home.locator("#contacts")).toContainText("contest@example.com");
+    await expect(home.locator(".footer__grid > div").first().getByRole("link", {name:"contest@example.com"})).toHaveAttribute("href", "mailto:contest@example.com");
+    await expect(home.locator(".footer__socials").getByRole("link", {name:"Instagram",exact:true})).toHaveAttribute("href", "https://www.instagram.com/example/");
+    await expect(home.locator(".footer__socials").getByRole("link", {name:"VK",exact:true})).toHaveAttribute("href", "https://vk.ru/example");
+    await expect(home.locator(".footer__socials").getByRole("link", {name:"WhatsApp",exact:true})).toHaveAttribute("href", "https://wa.me/79991234567");
     await expect(home.locator(".jury-card").first()).toContainText("Новое имя жюри");
     await expect(home.locator(".timeline__grid")).toContainText("Заезд и регистрация с 15:00.");
+    await expect(home.locator(".timeline__events").first().locator("li")).toHaveText(["Заезд и регистрация с 15:00.", "Ужин"]);
+    await expect(home.locator(".timeline__note").first()).toContainText("Приготовьте документы для заселения.");
     await expect(home.locator(".price-card").first().locator("strong")).toHaveText(/4\s500 ₽/);
     await expect(home.locator(".hero__actions [download]")).toHaveAttribute("href", saved.documents.regulations);
     expect(await home.title()).toContain("3–4 мая 2028, Тула");
@@ -63,8 +85,18 @@ test("settings editor updates the whole site and protects unsaved work, conflict
       const html = await (await request.get(url)).text();
       expect(html).toContain("contest@example.com");
       expect(html).toContain("© 2028");
-      expect(html).not.toContain("akulov@");
+      expect(html).not.toContain(original.contacts.email);
     }
+    await home.goto("/privacy.html");
+    await expect(home).toHaveURL(/\/privacy$/);
+    await expect(home.locator("h1")).toHaveText("Обработка данных");
+    await expect(home.locator(".legal-main section").first().locator("p")).toHaveCount(2);
+    await expect(home.locator(".legal-main section").first().getByRole("link", { name: "contest@example.com" })).toHaveAttribute("href", "mailto:contest@example.com");
+    await home.goto("/consent");
+    await expect(home.locator(".legal-lead")).toHaveText("Согласие на обработку данных для участия в конкурсе.");
+    await home.goto("/news");
+    await expect(home.locator("h1")).toHaveText("События конкурса");
+    await expect(home.locator(".news-index__lead")).toHaveText("Новости и материалы для участников.");
     await home.close();
     for (const width of [1440,390]) {
       await page.setViewportSize({width,height:1000});

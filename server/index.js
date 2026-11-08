@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { createApplication } from "./app.js";
 import { sendFile } from "./http.js";
-import { renderSiteShell, renderLegalPage } from "../shared/site-html.js";
+import { renderSiteShell } from "../shared/site-html.js";
 
 export async function startServer({
   root = fileURLToPath(new URL("../", import.meta.url)),
@@ -83,13 +83,6 @@ export async function startServer({
       }
       if (pathname === "/admin" || pathname === "/admin/")
         pathname = "/admin/index.html";
-      if (["/privacy", "/consent"].includes(pathname)) pathname += ".html";
-      if (["/privacy.html", "/consent.html"].includes(pathname)) {
-        const template = await readFile(path.join(dist, pathname.slice(1)), "utf8");
-        response.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
-        response.end(request.method === "HEAD" ? undefined : renderLegalPage(template, app.store.settings().settings));
-        return;
-      }
       const filename = path.resolve(dist, `.${pathname}`);
       if (!filename.startsWith(`${dist}${path.sep}`)) {
         response.statusCode = 404;
@@ -98,9 +91,8 @@ export async function startServer({
       }
       const cache = pathname.startsWith("/bundles/")
         ? "public, max-age=31536000, immutable"
-        : pathname.endsWith(".html")
-          ? "no-cache"
-          : "public, max-age=3600";
+        // Public assets keep their filenames when replaced. Revalidate using ETag.
+        : "no-cache";
       if (!(await sendFile(request, response, filename, { cache }))) {
         response.statusCode = 404;
         response.end("Not found");

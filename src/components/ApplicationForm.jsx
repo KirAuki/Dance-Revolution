@@ -424,11 +424,11 @@ export default function ApplicationForm() {
             "personalDataAccepted",
             <>
               Я принимаю{" "}
-              <a href="/consent.html" target="_blank" rel="noreferrer">
+              <a href="/consent" target="_blank" rel="noreferrer">
                 Согласие на обработку персональных данных
               </a>{" "}
               и ознакомился(-ась) с{" "}
-              <a href="/privacy.html" target="_blank" rel="noreferrer">
+              <a href="/privacy" target="_blank" rel="noreferrer">
                 Политикой конфиденциальности
               </a>
               .

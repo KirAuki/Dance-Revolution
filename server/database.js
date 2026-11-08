@@ -96,7 +96,14 @@ export function openStore(dataDir, { seedDir } = {}) {
     },
     settings() {
       const row = db.prepare("SELECT data,version,updated_at FROM site_settings WHERE id=1").get();
-      return { settings: JSON.parse(row.data), version: row.version, updatedAt: row.updated_at };
+      const settings = JSON.parse(row.data);
+      // Supply new editable sections without resetting existing site content.
+      settings.pages ??= structuredClone(defaultSiteSettings.pages);
+      settings.news ??= structuredClone(defaultSiteSettings.news);
+      // One contact email; optional social links can be added to older records.
+      for (const key of ["instagramUrl", "vkUrl", "whatsappUrl"]) settings.contacts[key] ??= "";
+      for (const key of ["tracksEmail", "telegramLabel", "maxLabel"]) delete settings.contacts[key];
+      return { settings, version: row.version, updatedAt: row.updated_at };
     },
     saveSettings(settings, version) {
       const result = db.prepare("UPDATE site_settings SET data=?,version=version+1,updated_at=? WHERE id=1 AND version=?")

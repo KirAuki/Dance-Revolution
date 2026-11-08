@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { createApplication } from "./server/app.js";
-import { renderSiteShell, renderLegalPage } from "./shared/site-html.js";
+import { renderSiteShell } from "./shared/site-html.js";
 
 function localServer() {
   const connect = async (server, preview = false) => {
@@ -40,15 +40,6 @@ function localServer() {
       }
       if (pathname === "/admin" || pathname === "/admin/")
         request.url = request.url.replace(pathname, "/admin/index.html");
-      if (/^\/(privacy|consent)(\.html)?$/.test(pathname) && ["GET", "HEAD"].includes(request.method)) {
-        const filename = pathname.replace(/\.html$/, "").slice(1) + ".html";
-        const template = await readFile(path.join(root, preview ? "dist" : "", filename), "utf8");
-        const html = renderLegalPage(template, app.store.settings().settings);
-        response.setHeader("Content-Type", "text/html; charset=utf-8");
-        response.setHeader("Cache-Control", "no-store");
-        response.end(request.method === "HEAD" ? undefined : preview ? html : await server.transformIndexHtml(pathname, html));
-        return;
-      }
       next();
     });
   };
@@ -77,8 +68,6 @@ export default defineConfig(({ mode }) => {
         input: {
           main: "index.html",
           admin: "admin/index.html",
-          privacy: "privacy.html",
-          consent: "consent.html",
         },
       },
     },

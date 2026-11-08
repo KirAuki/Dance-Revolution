@@ -30,21 +30,12 @@ export default function Jury() {
           <article className="jury-card reveal" key={index}>
             <div className="jury-card__photo" role="img" aria-label={person.name}>
               <div
-                className={`jury-card__portrait${!person.image && person.spriteIndex === null ? " jury-card__portrait--placeholder" : ""}`}
+                className={`jury-card__portrait${!person.image ? " jury-card__portrait--placeholder" : ""}`}
                 aria-hidden="true"
                 style={person.image
                   ? { backgroundImage: `url("${person.image}")`, backgroundSize: "cover", backgroundPosition: "center top" }
-                  : person.spriteIndex !== null
-                    ? { "--position": `${person.spriteIndex * 25}%` }
-                    : undefined}
-              >
-                {!person.image && person.spriteIndex === null && (
-                  <>
-                    <span className="jury-card__question">?</span>
-                    <span className="jury-card__teaser">Новое имя</span>
-                  </>
-                )}
-              </div>
+                  : undefined}
+              />
             </div>
             <div className="jury-card__body">
               <JuryName name={person.name} />
