@@ -1,88 +1,5 @@
-export const nominations = [
-  "Детский танец",
-  "Народный танец",
-  "Народный стилизованный танец",
-  "Классический танец",
-  "Деми-классика",
-  "Бально-спортивный танец",
-  "Эстрадный танец",
-  "Современный танец",
-  "Клубный (уличный) танец",
-  "Танцевальное шоу",
-  "Черлидинг",
-  "Восточный танец",
-  "Цирковая хореография",
-  "Гимнастический танец",
-  "Другое направление",
-];
-export const ages = [
-  "5–6 лет",
-  "7–9 лет",
-  "10–12 лет",
-  "13–15 лет",
-  "16–18 лет",
-  "19 лет и старше",
-  "Смешанная",
-];
-export const levels = [
-  "Ансамбль без звания — от 1 до 5 лет",
-  "Ансамбль без звания — более 5 лет",
-  "Образцовый или заслуженный коллектив",
-  "Народный коллектив / школа-студия при государственном ансамбле",
-];
-
-export const limits = {
-  collective: 180,
-  performanceTitle: 180,
-  duration: 5,
-  nomination: 120,
-  ageCategory: 60,
-  professionalLevel: 180,
-  participants: 8000,
-  institution: 240,
-  country: 100,
-  city: 120,
-  director: 180,
-  teacher: 180,
-  accommodation: 3,
-  hotelGuests: 6000,
-  email: 254,
-  phone: 60,
-  telegram: 100,
-  comment: 3000,
-  website: 200,
-};
-
-export const stepFields = [
-  [
-    "collective",
-    "performanceTitle",
-    "participantCount",
-    "duration",
-    "nomination",
-    "ageCategory",
-    "professionalLevel",
-  ],
-  [
-    "participants",
-    "institution",
-    "country",
-    "city",
-    "director",
-    "teacher",
-    "accommodation",
-    "hotelGuests",
-  ],
-  [
-    "email",
-    "phone",
-    "telegram",
-    "comment",
-    "regulationsAccepted",
-    "personalDataAccepted",
-    "website",
-  ],
-];
+import schema from "./application-schema.json" with { type: "json" };
+export const { nominations, ages, levels, limits, stepFields } = schema;
 
 export function normalizeApplication(body) {
   return Object.fromEntries(
@@ -93,7 +10,19 @@ export function normalizeApplication(body) {
   );
 }
 
-export function validateApplication(body) {
+export function applicationOptions(home) {
+  return {
+    nominations: home?.nominations.items.map(item => item.title) ?? nominations,
+    ages: home?.categories.ages.map(item => item.title) ?? ages,
+    levels: home?.categories.levels.map(item => item.title) ?? levels,
+    minParticipants: home?.registration.minParticipants ?? 5,
+    maxParticipants: home?.registration.maxParticipants ?? 500,
+    maxDurationSeconds: home?.registration.maxDurationSeconds ?? 240,
+  };
+}
+
+export function validateApplication(body, home) {
+  const options = applicationOptions(home);
   const data = normalizeApplication(body);
   const errors = {};
   const required = [
@@ -128,13 +57,13 @@ export function validateApplication(body) {
     data.phone.replace(/\D/g, "").length < 7
   )
     errors.phone = "Укажите корректный телефон.";
-  for (const [key, options] of [
-    ["nomination", nominations],
-    ["ageCategory", ages],
-    ["professionalLevel", levels],
+  for (const [key, choices] of [
+    ["nomination", options.nominations],
+    ["ageCategory", options.ages],
+    ["professionalLevel", options.levels],
     ["accommodation", ["Да", "Нет"]],
   ]) {
-    if (!options.includes(data[key]))
+    if (!choices.includes(data[key]))
       errors[key] = "Выберите значение из списка.";
   }
   if (data.accommodation === "Да" && !data.hotelGuests)
@@ -143,16 +72,16 @@ export function validateApplication(body) {
   if (
     !["number", "string"].includes(typeof body.participantCount) ||
     !Number.isInteger(count) ||
-    count < 5 ||
-    count > 500
+    count < options.minParticipants ||
+    count > options.maxParticipants
   ) {
     errors.participantCount =
-      "Количество участников должно быть целым числом от 5 до 500.";
+      `Количество участников должно быть целым числом от ${options.minParticipants} до ${options.maxParticipants}.`;
   }
   const duration = data.duration.match(/^(\d{1,2}):([0-5]\d)$/);
   const seconds = duration ? Number(duration[1]) * 60 + Number(duration[2]) : 0;
-  if (!duration || seconds <= 0 || seconds > 240)
-    errors.duration = "Укажите хронометраж в формате 03:30, от 00:01 до 04:00.";
+  if (!duration || seconds <= 0 || seconds > options.maxDurationSeconds)
+    errors.duration = "Укажите хронометраж в формате 03:30 в пределах допустимого времени.";
   for (const key of ["regulationsAccepted", "personalDataAccepted"]) {
     if (body[key] !== true) errors[key] = "Необходимо подтвердить согласие.";
   }

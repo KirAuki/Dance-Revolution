@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, rm, readFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
-import { openStore } from "../server/database.js";
+import { readFile } from "node:fs/promises";
+
+
+
+
 import { defaultSiteSettings, validateSiteSettings, eventRange, compactEventDates, daysBetween } from "../shared/site-settings.js";
 import { renderSiteShell } from "../shared/site-html.js";
-import { renderLegalPage } from "../shared/legal-html.js";
+
 
 test("settings validate dates, chronology, prices and uploaded resource paths", () => {
   assert.deepEqual(validateSiteSettings(defaultSiteSettings), defaultSiteSettings);
@@ -97,37 +97,5 @@ test("HTML settings preserve literal replacement characters and cannot escape th
   assert.deepEqual(JSON.parse(data), settings);
   assert.ok(html.includes("3–4 апреля 2028"));
   assert.ok(html.includes("hello$&amp;@example.com"));
-  const legal = renderLegalPage("privacy", "https://example.com", "", settings);
-  assert.ok(legal.includes("Документы / 2028"));
-  assert.ok(legal.includes("hello$&amp;@example.com"));
-  assert.ok(!legal.includes(defaultSiteSettings.contacts.email));
-});
 
-test("migration adds settings to an existing v1 database without losing content or accounts", async () => {
-  const dataDir = await mkdtemp(path.join(tmpdir(), "dance-settings-test-"));
-  let store;
-  try {
-    // Create an actual old schema, not a database already migrated by openStore.
-    const old = new DatabaseSync(path.join(dataDir, "site.sqlite"));
-    old.exec("CREATE TABLE users (id INTEGER PRIMARY KEY, login TEXT, password_hash TEXT); CREATE TABLE articles (id TEXT PRIMARY KEY, title TEXT); INSERT INTO users VALUES (1,'existing-editor','existing-hash'); INSERT INTO articles VALUES ('saved-story','Existing story'); PRAGMA user_version=1;");
-    old.close();
-    store = openStore(dataDir);
-    assert.equal(store.db.prepare("PRAGMA user_version").get().user_version, 2);
-    assert.equal(store.db.prepare("SELECT login FROM users").get().login, "existing-editor");
-    assert.equal(store.db.prepare("SELECT title FROM articles").get().title, "Existing story");
-    const first = store.settings();
-    first.settings.prices.localFirst = 4200;
-    const saved = store.saveSettings(first.settings, first.version);
-    assert.equal(saved.version, 2);
-    assert.equal(store.saveSettings(defaultSiteSettings, first.version), null);
-    store.close();
-    store = openStore(dataDir);
-    assert.equal(store.settings().settings.prices.localFirst, 4200);
-    assert.equal(store.settings().version, 2);
-  } finally {
-    store?.close();
-    assert.equal(path.dirname(path.resolve(dataDir)), path.resolve(tmpdir()));
-    assert.ok(path.basename(dataDir).startsWith("dance-settings-test-"));
-    await rm(dataDir, { recursive: true, force: true });
-  }
 });

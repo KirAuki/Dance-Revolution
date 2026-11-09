@@ -3,7 +3,7 @@ import { useSiteSettings } from "../SiteSettings.jsx";
 import { eventRange } from "../../shared/site-settings.js";
 
 export default function Application() {
-  const { event } = useSiteSettings();
+  const { event, home } = useSiteSettings();
   return (
     <section className="application section section--dark" id="application">
       <div className="shell application__layout">
@@ -15,7 +15,7 @@ export default function Application() {
           <div className="application__meta reveal">
             <span>{event.city}</span>
             <strong>{eventRange(event.startDate, event.endDate)}</strong>
-            <small>После отправки подтверждение придёт на e-mail.</small>
+            <small>{home.registration.intro}</small>
           </div>
         </div>
         <ApplicationForm />

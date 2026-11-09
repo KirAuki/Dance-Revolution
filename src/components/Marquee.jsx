@@ -1,12 +1,9 @@
 import { Fragment } from "react";
-
-const phrases = Array.from({ length: 8 }, () => [
-  "ТВОЙ ТАНЕЦ",
-  "ТВОЯ СЦЕНА",
-  "ТВОЯ РЕВОЛЮЦИЯ",
-]).flat();
+import { useSiteSettings } from "../SiteSettings.jsx";
 
 export default function Marquee() {
+  const { home } = useSiteSettings();
+  const phrases = Array.from({length: 8}, () => home.marquee.items.map(item => item.title)).flat();
   return (
     <div className="marquee marquee--lime" aria-hidden="true">
       <div className="marquee__track">

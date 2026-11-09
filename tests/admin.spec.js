@@ -39,6 +39,7 @@ test("password login, draft, cover, preview, publish, edit, unpublish and logout
   await expect(
     page.frameLocator('iframe[title="Предпросмотр статьи"]').locator("h1"),
   ).toContainText("Проверка редактора");
+  await expect(page.frameLocator('iframe[title="Предпросмотр статьи"]').locator("h1")).toHaveCSS("text-transform", "uppercase");
   await page.getByRole("button", { name: "Закрыть", exact: true }).click();
   await page.getByRole("button", { name: "Опубликовать", exact: true }).click();
   await expect(page.locator(".cms-success")).toContainText("доступна на сайте");

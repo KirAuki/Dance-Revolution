@@ -1,0 +1,426 @@
+[
+  {
+    "key": "hero",
+    "title": "Первый экран",
+    "fields": [
+      {
+        "key": "eyebrow",
+        "label": "Подпись над названием",
+        "type": "text",
+        "maxLength": 2000
+      },
+      {
+        "key": "lead",
+        "label": "Описание",
+        "type": "textarea",
+        "maxLength": 2000
+      },
+      {
+        "key": "poster",
+        "label": "Фото до загрузки видео",
+        "type": "image",
+        "maxLength": 2000
+      }
+    ],
+    "lists": []
+  },
+  {
+    "key": "about",
+    "title": "О проекте",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Заголовок",
+        "type": "text",
+        "maxLength": 120
+      },
+      {
+        "key": "accent",
+        "label": "Выделенная часть заголовка",
+        "type": "text",
+        "maxLength": 2000
+      },
+      {
+        "key": "text",
+        "label": "Текст",
+        "type": "textarea",
+        "maxLength": 2000
+      }
+    ],
+    "lists": []
+  },
+  {
+    "key": "format",
+    "title": "Формат конкурса",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Заголовок",
+        "type": "text",
+        "maxLength": 120
+      },
+      {
+        "key": "accent",
+        "label": "Выделенная часть заголовка",
+        "type": "text",
+        "maxLength": 2000
+      },
+      {
+        "key": "image",
+        "label": "Фотография",
+        "type": "image",
+        "maxLength": 2000,
+        "optional": true
+      },
+      {
+        "key": "caption",
+        "label": "Подпись фотографии",
+        "type": "text",
+        "maxLength": 2000
+      }
+    ],
+    "lists": [
+      {
+        "key": "items",
+        "label": "Пункты блока",
+        "min": 1,
+        "max": 30,
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заголовок",
+            "type": "text",
+            "maxLength": 120
+          },
+          {
+            "key": "text",
+            "label": "Текст",
+            "type": "textarea",
+            "maxLength": 2000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "nominations",
+    "title": "Номинации",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Заголовок",
+        "type": "text",
+        "maxLength": 120
+      },
+      {
+        "key": "accent",
+        "label": "Выделенная часть заголовка",
+        "type": "text",
+        "maxLength": 2000
+      },
+      {
+        "key": "intro",
+        "label": "Вступление",
+        "type": "textarea",
+        "maxLength": 2000
+      }
+    ],
+    "lists": [
+      {
+        "key": "items",
+        "label": "Пункты блока",
+        "min": 1,
+        "max": 30,
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заголовок",
+            "type": "text",
+            "maxLength": 120
+          },
+          {
+            "key": "description",
+            "label": "Описание",
+            "type": "textarea",
+            "maxLength": 2000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "categories",
+    "title": "Категории и оценка",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Заголовок",
+        "type": "text",
+        "maxLength": 120
+      },
+      {
+        "key": "accent",
+        "label": "Выделенная часть заголовка",
+        "type": "text",
+        "maxLength": 2000
+      },
+      {
+        "key": "note",
+        "label": "Примечание",
+        "type": "textarea",
+        "maxLength": 2000
+      }
+    ],
+    "lists": [
+      {
+        "key": "ages",
+        "label": "Возрастные категории",
+        "min": 1,
+        "max": 30,
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заголовок",
+            "type": "text",
+            "maxLength": 120
+          },
+          {
+            "key": "label",
+            "label": "Короткая подпись",
+            "type": "text",
+            "maxLength": 2000
+          }
+        ]
+      },
+      {
+        "key": "levels",
+        "label": "Профессиональные уровни",
+        "min": 1,
+        "max": 30,
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заголовок",
+            "type": "text",
+            "maxLength": 120
+          }
+        ]
+      },
+      {
+        "key": "criteria",
+        "label": "Критерии оценки",
+        "min": 1,
+        "max": 30,
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заголовок",
+            "type": "text",
+            "maxLength": 120
+          },
+          {
+            "key": "text",
+            "label": "Текст",
+            "type": "textarea",
+            "maxLength": 2000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "awards",
+    "title": "Награды",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Заголовок",
+        "type": "text",
+        "maxLength": 120
+      },
+      {
+        "key": "accent",
+        "label": "Выделенная часть заголовка",
+        "type": "text",
+        "maxLength": 2000
+      }
+    ],
+    "lists": [
+      {
+        "key": "items",
+        "label": "Пункты блока",
+        "min": 5,
+        "max": 5,
+        "fields": [
+          {
+            "key": "image",
+            "label": "Фотография",
+            "type": "image",
+            "maxLength": 2000,
+            "optional": true
+          },
+          {
+            "key": "label",
+            "label": "Короткая подпись",
+            "type": "text",
+            "maxLength": 2000
+          },
+          {
+            "key": "title",
+            "label": "Заголовок",
+            "type": "text",
+            "maxLength": 120
+          },
+          {
+            "key": "text",
+            "label": "Текст",
+            "type": "textarea",
+            "maxLength": 2000
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "premium",
+    "title": "Премия",
+    "fields": [
+      {
+        "key": "accent",
+        "label": "Выделенная часть заголовка",
+        "type": "text",
+        "maxLength": 2000
+      },
+      {
+        "key": "intro",
+        "label": "Вступление",
+        "type": "textarea",
+        "maxLength": 2000
+      }
+    ],
+    "lists": [
+      {
+        "key": "items",
+        "label": "Пункты блока",
+        "min": 1,
+        "max": 30,
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заголовок",
+            "type": "text",
+            "maxLength": 120
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "travel",
+    "title": "Что входит в стоимость",
+    "fields": [
+      {
+        "key": "currencyNote",
+        "label": "Примечание о валюте",
+        "type": "textarea",
+        "maxLength": 2000
+      },
+      {
+        "key": "participantBenefit",
+        "label": "Дополнительно для участника с проживанием",
+        "type": "text",
+        "maxLength": 2000
+      },
+      {
+        "key": "companionBenefit",
+        "label": "Дополнительно для сопровождающего",
+        "type": "text",
+        "maxLength": 2000
+      }
+    ],
+    "lists": [
+      {
+        "key": "localBenefits",
+        "label": "В стоимость местного участия входит",
+        "min": 1,
+        "max": 30,
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заголовок",
+            "type": "text",
+            "maxLength": 120
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "key": "registration",
+    "title": "Правила приёма заявок",
+    "fields": [
+      {
+        "key": "minParticipants",
+        "label": "Минимум участников",
+        "type": "number",
+        "min": 1,
+        "max": 500
+      },
+      {
+        "key": "maxParticipants",
+        "label": "Максимум участников",
+        "type": "number",
+        "min": 1,
+        "max": 500
+      },
+      {
+        "key": "maxDurationSeconds",
+        "label": "Максимальный хронометраж, секунд",
+        "type": "number",
+        "min": 1,
+        "max": 5999
+      },
+      {
+        "key": "intro",
+        "label": "Вступление",
+        "type": "textarea",
+        "maxLength": 2000
+      }
+    ],
+    "lists": []
+  },
+  {
+    "key": "footer",
+    "title": "Организатор",
+    "fields": [
+      {
+        "key": "organizer",
+        "label": "Название организатора",
+        "type": "text",
+        "maxLength": 2000
+      }
+    ],
+    "lists": []
+  },
+  {
+    "key": "marquee",
+    "title": "Бегущая строка",
+    "fields": [],
+    "lists": [
+      {
+        "key": "items",
+        "label": "Пункты блока",
+        "min": 1,
+        "max": 30,
+        "fields": [
+          {
+            "key": "title",
+            "label": "Заголовок",
+            "type": "text",
+            "maxLength": 120
+          }
+        ]
+      }
+    ]
+  }
+]

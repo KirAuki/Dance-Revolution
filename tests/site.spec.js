@@ -298,6 +298,7 @@ test("local API rejects invalid payloads", async ({ request }) => {
   expect((await request.get("/api/application")).status()).toBe(405);
   const response = await request.post("/api/application", {
     data: { ...validApplication, participantCount: 4 },
+    headers: {"Idempotency-Key":crypto.randomUUID()},
   });
-  expect(response.status()).toBe(400);
+  expect(response.status()).toBe(422);
 });

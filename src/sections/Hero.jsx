@@ -4,7 +4,7 @@ import { useSiteSettings } from "../SiteSettings.jsx";
 import { compactEventDates, eventRange } from "../../shared/site-settings.js";
 
 export default function Hero() {
-  const { event, venue, documents } = useSiteSettings();
+  const { event, venue, documents, home } = useSiteSettings();
   return (
     <section className="hero" id="top" aria-labelledby="hero-title">
       <HeroVideo />
@@ -16,7 +16,7 @@ export default function Hero() {
       </div>
       <div className="shell hero__content">
         <p className="eyebrow reveal">
-          Международная премия-конкурс в сфере хореографического искусства
+          {home.hero.eyebrow}
         </p>
         <div className="hero__date reveal">
           <time dateTime={event.startDate}>{compactEventDates(event.startDate, event.endDate).join(" / ").replace("·", " / ")}</time>
@@ -27,8 +27,7 @@ export default function Hero() {
           <strong>РЕВОЛЮЦИЯ</strong>
         </h1>
         <p className="hero__lead reveal">
-          Конкурсная программа на большой сцене — для хореографических
-          коллективов из России и стран ближнего зарубежья.
+          {home.hero.lead}
         </p>
         <div className="hero__actions reveal">
           <a className="button button--lime button--large" href="#application">

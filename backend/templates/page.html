@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050505"><title>{{ title }} — Танцевальная революция</title>
+<meta name="description" content="{{ description }}"><link rel="canonical" href="{{ canonical }}">
+<meta name="robots" content="{{ 'noindex,follow' if noindex else 'index,follow' }}">
+<meta property="og:type" content="{{ 'article' if article else 'website' }}"><meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ description }}"><meta property="og:url" content="{{ canonical }}">
+{% if article and article.image %}<meta property="og:image" content="{{ origin }}{{ article.image }}">{% endif %}
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">{{ styles }}
+{% if schema %}<script type="application/ld+json">{{ schema }}</script>{% endif %}
+</head><body class="{{ 'legal-page' if kind == 'legal' else 'news-page' }}">
+{% macro arrow(left=false) %}<span class="arrow-icon{{ ' arrow-icon--left' if left else '' }}" aria-hidden="true"></span>{% endmacro %}
+<header class="page-header"><a class="mini-logo" href="/" aria-label="На главную"><span>ТАНЦЕВАЛЬНАЯ</span><strong>революция</strong></a><a class="button button--lime" href="/#application">Подать заявку {{ arrow() }}</a></header>
+<main class="{{ 'legal-main' if kind == 'legal' else 'news-index' if kind == 'news' else 'article-main' }}">
+<nav class="page-breadcrumbs" aria-label="Хлебные крошки"><ol><li><a href="/">{{ arrow(true) }}Главная</a></li>{% if kind == 'article' %}<li><span class="page-breadcrumbs__separator" aria-hidden="true">/</span><a href="/news">{{ settings.news.title }}</a></li>{% endif %}<li><span class="page-breadcrumbs__separator" aria-hidden="true">/</span><span aria-current="page">{{ title }}</span></li></ol></nav>
+{% if kind == 'legal' %}
+<p class="section-label">Документы / {{ settings.event.startDate[:4] }}</p><h1>{{ title }}</h1><p class="legal-lead">{{ inline(document.lead, settings) }}</p>
+{% for section in document.sections %}<section><h2>{{ loop.index }}. {{ section.heading }}</h2><div>{% for paragraph in section.text|paragraphs %}<p>{{ inline(paragraph, settings) }}</p>{% endfor %}</div></section>{% endfor %}
+<nav class="legal-related" aria-label="Другие документы"><a href="{{ '/consent' if pathname == '/privacy' else '/privacy' }}">{{ settings.pages.consent.title if pathname == '/privacy' else settings.pages.privacy.title }}</a></nav>
+{% elif kind == 'article' %}
+<article><div class="news-card__meta"><span>{{ article.category }}</span><time datetime="{{ article.date }}">{{ article.date|date_label }}</time></div><h1>{{ title }}</h1><p class="article-lead">{{ article.description }}</p>
+{% if article.image %}<img class="article-cover" src="{{ article.image }}" alt="" width="1200" height="675">{% endif %}
+<div class="article-copy">{% for section in article.sections %}<section>{% if section.heading %}<h2>{{ section.heading }}</h2>{% endif %}{% for paragraph in section.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}</section>{% endfor %}</div></article>
+<div class="article-cta"><p>Готовы выйти на сцену?</p><a class="button button--lime" href="/#application">Подать заявку {{ arrow() }}</a></div>
+{% elif kind == 'news' %}
+<p class="section-label">Жизнь конкурса</p><h1>{{ title }}</h1><p class="news-index__lead">{{ settings.news.lead }}</p>
+{% if articles %}<div class="news-grid">{% for item in articles %}<article class="news-card"><a class="news-card__link" href="/news/{{ item.slug }}">{% if item.image %}<img src="{{ item.image }}" alt="" loading="lazy" width="1200" height="675">{% endif %}<div class="news-card__body"><div class="news-card__meta"><span>{{ item.category }}</span><time datetime="{{ item.date }}">{{ item.date|date_label }}</time></div><h2>{{ item.title }}</h2><p>{{ item.description }}</p><span class="text-link">Читать материал {{ arrow() }}</span></div></a></article>{% endfor %}</div>
+{% if has_next or current_page > 1 %}<nav class="article-cta" aria-label="Страницы новостей">{% if current_page > 1 %}<a href="/news?page={{ current_page - 1 }}">Предыдущая страница</a>{% endif %}{% if has_next %}<a href="/news?page={{ current_page + 1 }}">Следующая страница</a>{% endif %}</nav>{% endif %}
+{% else %}<div class="news-empty"><span class="news-empty__label">Скоро в ленте</span><h2>{{ settings.news.emptyTitle }}</h2><p>{{ settings.news.emptyText }}</p><a class="text-link" href="{{ settings.contacts.telegramUrl }}" target="_blank" rel="noreferrer">Следить в Telegram {{ arrow() }}</a></div>{% endif %}
+{% else %}<h1>{{ title }}</h1><a class="text-link" href="/news">Все новости и статьи {{ arrow() }}</a>{% endif %}
+</main><footer class="page-footer"><span>© {{ settings.event.startDate[:4] }} «Танцевальная революция»</span><a href="/">Вернуться на сайт {{ arrow() }}</a></footer>
+</body></html>

@@ -1,0 +1,6 @@
+# Put in the separate document root of dancesrevolution.com.
+Options -Indexes
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/
+RewriteCond %{HTTP_HOST} ^(?:www\.)?dancesrevolution\.com(?::[0-9]+)?$ [NC]
+RewriteRule ^ https://dancesrevolution.ru%{REQUEST_URI} [R=301,L,NE]

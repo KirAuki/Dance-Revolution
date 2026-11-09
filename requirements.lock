@@ -1,0 +1,19 @@
+# Runtime dependencies used by the verified release. Python 3.12+.
+Flask==3.1.3
+SQLAlchemy==2.0.57
+PyMySQL[rsa]==1.1.3
+Pillow==12.3.0
+python-dotenv==1.2.4
+waitress==3.0.2
+blinker==1.9.0
+click==8.5.1
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.4
+Werkzeug==3.1.9
+greenlet==3.5.6
+typing_extensions==4.16.0
+cryptography==50.0.2
+cffi==2.1.1
+pycparser==3.12
+colorama==0.4.6; sys_platform == "win32"

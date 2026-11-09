@@ -1,0 +1,85 @@
+{
+  "nominations": [
+    "Детский танец",
+    "Народный танец",
+    "Народный стилизованный танец",
+    "Классический танец",
+    "Деми-классика",
+    "Бально-спортивный танец",
+    "Эстрадный танец",
+    "Современный танец",
+    "Клубный (уличный) танец",
+    "Танцевальное шоу",
+    "Черлидинг",
+    "Восточный танец",
+    "Цирковая хореография",
+    "Гимнастический танец",
+    "Другое направление"
+  ],
+  "ages": [
+    "5–6 лет",
+    "7–9 лет",
+    "10–12 лет",
+    "13–15 лет",
+    "16–18 лет",
+    "19 лет и старше",
+    "Смешанная"
+  ],
+  "levels": [
+    "Ансамбль без звания — от 1 до 5 лет",
+    "Ансамбль без звания — более 5 лет",
+    "Образцовый или заслуженный коллектив",
+    "Народный коллектив / школа-студия при государственном ансамбле"
+  ],
+  "limits": {
+    "collective": 180,
+    "performanceTitle": 180,
+    "duration": 5,
+    "nomination": 120,
+    "ageCategory": 60,
+    "professionalLevel": 180,
+    "participants": 8000,
+    "institution": 240,
+    "country": 100,
+    "city": 120,
+    "director": 180,
+    "teacher": 180,
+    "accommodation": 3,
+    "hotelGuests": 6000,
+    "email": 254,
+    "phone": 60,
+    "telegram": 100,
+    "comment": 3000,
+    "website": 200
+  },
+  "stepFields": [
+    [
+      "collective",
+      "performanceTitle",
+      "participantCount",
+      "duration",
+      "nomination",
+      "ageCategory",
+      "professionalLevel"
+    ],
+    [
+      "participants",
+      "institution",
+      "country",
+      "city",
+      "director",
+      "teacher",
+      "accommodation",
+      "hotelGuests"
+    ],
+    [
+      "email",
+      "phone",
+      "telegram",
+      "comment",
+      "regulationsAccepted",
+      "personalDataAccepted",
+      "website"
+    ]
+  ]
+}

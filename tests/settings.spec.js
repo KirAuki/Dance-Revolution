@@ -21,6 +21,9 @@ test("settings editor updates the whole site and protects unsaved work, conflict
     await login();
     await page.getByRole("button", {name:"Настройки сайта",exact:true}).click();
     const field = name => page.locator(`[name="${name}"]`);
+    const choose = async title => page.getByRole("navigation",{name:"Разделы настроек"}).getByRole("button",{name:title,exact:true}).click();
+    const groupTitles = {event:"Даты и город",prices:"Стоимость и премия",contacts:"Контакты",venue:"Площадка",jury:"Жюри",program:"Программа",news:"Страница новостей",documents:"Документы"};
+    const chooseField = async name => choose(name.startsWith("pages.") ? name.split(".")[1] === "privacy" ? "Политика конфиденциальности" : "Согласие на обработку ПД" : groupTitles[name.split(".")[0]]);
     const save = page.getByRole("button", {name:"Сохранить настройки",exact:true});
     await expect(field("event.startDate")).toHaveValue(original.event.startDate);
     await field("event.startDate").fill("");
@@ -43,7 +46,10 @@ test("settings editor updates the whole site and protects unsaved work, conflict
       "pages.consent.lead":"Согласие на обработку данных для участия в конкурсе.",
       "news.title":"События конкурса",
       "news.lead":"Новости и материалы для участников.",
-    })) await field(name).fill(value);
+    })) { await chooseField(name); await field(name).fill(value); }
+    await choose("Первый экран");
+    await field("home.hero.lead").fill("Обновлённое описание конкурса из редактора.");
+    await choose("Политика конфиденциальности");
     const privacy = page.locator("#settings-privacy");
     await privacy.getByRole("button", { name: "Добавить раздел", exact: true }).click();
     const sectionIndex = original.pages.privacy.sections.length;
@@ -52,10 +58,12 @@ test("settings editor updates the whole site and protects unsaved work, conflict
     await privacy.locator(".cms-settings-item").last().getByRole("button", {name:"Выше",exact:true}).click();
     await expect(field(`pages.privacy.sections.${sectionIndex - 1}.heading`)).toHaveValue("Обратная связь");
     await privacy.locator(".cms-settings-item").nth(sectionIndex - 1).getByRole("button", {name:"Убрать",exact:true}).click();
+    await choose("Площадка");
     await field("venue.image").setInputFiles("public/assets/dancers-stage.webp");
     await expect(page.locator("#settings-venue .cms-settings-image")).toHaveAttribute("src", /^\/media\//);
     const picture = await page.locator("#settings-venue .cms-settings-image").getAttribute("src");
     expect((await request.get(picture)).status()).toBe(404);
+    await choose("Документы");
     await field("documents.regulations").setInputFiles("public/docs/polozhenie-tancevalnaya-revolyutsiya-2027.docx");
     await expect(page.getByRole("link", {name:"Открыть текущее положение"})).toHaveAttribute("href", /^\/documents\//);
     await save.click();
@@ -66,6 +74,7 @@ test("settings editor updates the whole site and protects unsaved work, conflict
     expect((await request.get(saved.documents.regulations)).headers()["content-disposition"]).toContain("attachment");
     const home = await page.context().newPage();
     await home.goto("/");
+    await expect(home.locator(".hero__lead")).toHaveText("Обновлённое описание конкурса из редактора.");
     await expect(home.locator(".hero__date time")).toHaveAttribute("datetime", "2028-05-03");
     await expect(home.locator(".hero__meta")).toContainText("3–4 мая 2028");
     await expect(home.locator(".application__meta")).toContainText("3–4 мая 2028");
@@ -108,6 +117,7 @@ test("settings editor updates the whole site and protects unsaved work, conflict
     const competing = await (await page.request.get("/api/admin/settings")).json();
     competing.settings.contacts.hours = "с 10:00 до 18:00";
     expect((await put(competing)).status()).toBe(200);
+    await choose("Даты и город");
     await field("event.city").fill("Казань");
     await save.click();
     await expect(page.locator(".cms-error")).toContainText("другой вкладке");
@@ -124,6 +134,7 @@ test("settings editor updates the whole site and protects unsaved work, conflict
     page.once("dialog", dialog => dialog.accept());
     await page.getByRole("button", {name:"Загрузить сохранённую версию"}).click();
     await expect(field("event.city")).toHaveValue("Тула");
+    await choose("Контакты");
     await expect(field("contacts.hours")).toHaveValue("с 10:00 до 18:00");
     expect(errors).toEqual([]);
   } finally {

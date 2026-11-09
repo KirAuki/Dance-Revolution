@@ -1,0 +1,250 @@
+[
+  {
+    "key": "event",
+    "title": "Даты и город",
+    "fields": [
+      {
+        "key": "startDate",
+        "label": "Начало конкурса",
+        "type": "date"
+      },
+      {
+        "key": "endDate",
+        "label": "Финал и награждение",
+        "type": "date"
+      },
+      {
+        "key": "arrivalDate",
+        "label": "Заезд иногородних",
+        "type": "date"
+      },
+      {
+        "key": "departureDate",
+        "label": "Выезд иногородних",
+        "type": "date"
+      },
+      {
+        "key": "localDeadline",
+        "label": "Заявки от местных коллективов до",
+        "type": "date"
+      },
+      {
+        "key": "travelDeadline",
+        "label": "Заявки от иногородних до",
+        "type": "date"
+      },
+      {
+        "key": "city",
+        "label": "Город",
+        "maxLength": 80
+      },
+      {
+        "key": "localLabel",
+        "label": "Название местной категории участников",
+        "maxLength": 120
+      }
+    ]
+  },
+  {
+    "key": "prices",
+    "title": "Стоимость и премия",
+    "fields": [
+      {
+        "key": "localFirst",
+        "label": "Первый номер, ₽ за участника",
+        "type": "number",
+        "min": 0,
+        "max": 10000000
+      },
+      {
+        "key": "localAdditional",
+        "label": "Следующий номер, ₽ за участника",
+        "type": "number",
+        "min": 0,
+        "max": 10000000
+      },
+      {
+        "key": "travelParticipant",
+        "label": "Иногородний участник, ₽",
+        "type": "number",
+        "min": 0,
+        "max": 10000000
+      },
+      {
+        "key": "companion",
+        "label": "Сопровождающий, ₽",
+        "type": "number",
+        "min": 0,
+        "max": 10000000
+      },
+      {
+        "key": "premium",
+        "label": "Премия в каждой номинации, ₽",
+        "type": "number",
+        "min": 0,
+        "max": 10000000
+      }
+    ]
+  },
+  {
+    "key": "venue",
+    "title": "Площадка",
+    "fields": [
+      {
+        "key": "name",
+        "label": "Название площадки",
+        "maxLength": 180
+      },
+      {
+        "key": "address",
+        "label": "Адрес площадки",
+        "maxLength": 240
+      },
+      {
+        "key": "description",
+        "label": "Описание площадки",
+        "type": "textarea",
+        "maxLength": 1000
+      },
+      {
+        "key": "mapUrl",
+        "label": "Ссылка на карту",
+        "type": "url"
+      },
+      {
+        "key": "image",
+        "label": "Фотография площадки",
+        "type": "image"
+      }
+    ]
+  },
+  {
+    "key": "hotel",
+    "title": "Проживание",
+    "fields": [
+      {
+        "key": "name",
+        "label": "Название гостиницы",
+        "maxLength": 180
+      },
+      {
+        "key": "address",
+        "label": "Адрес гостиницы",
+        "maxLength": 240
+      },
+      {
+        "key": "roomDescription",
+        "label": "Описание номера",
+        "maxLength": 180
+      },
+      {
+        "key": "meals",
+        "label": "Питание",
+        "maxLength": 180
+      },
+      {
+        "key": "transport",
+        "label": "Транспорт",
+        "maxLength": 180
+      },
+      {
+        "key": "image",
+        "label": "Фотография гостиницы",
+        "type": "image"
+      },
+      {
+        "key": "roomImage",
+        "label": "Фотография номера",
+        "type": "image"
+      }
+    ]
+  },
+  {
+    "key": "contacts",
+    "title": "Контакты",
+    "fields": [
+      {
+        "key": "email",
+        "label": "E-mail оргкомитета",
+        "type": "email"
+      },
+      {
+        "key": "phone",
+        "label": "Телефон оргкомитета",
+        "type": "tel"
+      },
+      {
+        "key": "hours",
+        "label": "Время работы",
+        "maxLength": 120
+      },
+      {
+        "key": "telegramUrl",
+        "label": "Ссылка на Telegram",
+        "type": "url"
+      },
+      {
+        "key": "instagramUrl",
+        "label": "Ссылка на Instagram",
+        "type": "url",
+        "optional": true
+      },
+      {
+        "key": "vkUrl",
+        "label": "Ссылка на VK",
+        "type": "url",
+        "optional": true
+      },
+      {
+        "key": "maxUrl",
+        "label": "Ссылка на MAX",
+        "type": "url"
+      },
+      {
+        "key": "whatsappUrl",
+        "label": "Ссылка на WhatsApp",
+        "type": "url",
+        "optional": true
+      }
+    ]
+  },
+  {
+    "key": "documents",
+    "title": "Документы",
+    "fields": [
+      {
+        "key": "regulations",
+        "label": "Положение конкурса",
+        "type": "document"
+      }
+    ]
+  },
+  {
+    "key": "news",
+    "title": "Страница новостей",
+    "fields": [
+      {
+        "key": "title",
+        "label": "Заголовок страницы",
+        "maxLength": 160
+      },
+      {
+        "key": "lead",
+        "label": "Вступление",
+        "type": "textarea",
+        "maxLength": 1000
+      },
+      {
+        "key": "emptyTitle",
+        "label": "Заголовок, пока нет публикаций",
+        "maxLength": 160
+      },
+      {
+        "key": "emptyText",
+        "label": "Текст, пока нет публикаций",
+        "type": "textarea",
+        "maxLength": 1000
+      }
+    ]
+  }
+]

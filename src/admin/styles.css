@@ -17,12 +17,14 @@ body {
 }
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
 button,
 a,
 input,
+select,
 textarea {
   -webkit-tap-highlight-color: transparent;
 }
@@ -58,6 +60,7 @@ label {
   font-weight: 600;
 }
 input,
+select,
 textarea {
   width: 100%;
   min-width: 0;
@@ -165,7 +168,7 @@ small,
   position: sticky;
   top: 24px;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   max-height: calc(100dvh - 48px);
 }
 .cms-settings-nav nav {
@@ -176,14 +179,61 @@ small,
   overflow-y: auto;
   overscroll-behavior: contain;
 }
-.cms-settings-nav nav a {
+.cms-settings-nav nav button {
   padding: 8px 12px;
-  text-decoration: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
   border-radius: 6px;
 }
-.cms-settings-nav nav a:hover {
+.cms-settings-nav nav button:hover {
   background: #e3e9d9;
 }
+.cms-settings-nav nav button[aria-current="page"] {
+  background: #20251d;
+  color: #fff;
+}
+.cms-settings-search { margin-bottom: 16px; }
+.cms-settings-content { scroll-margin-top: 24px; }
+.cms-block-list { margin-top: 32px; }
+.cms-block-item { border: 1px solid #dce1d4; border-radius: 8px; margin-bottom: 12px; }
+.cms-block-item summary { display: flex; gap: 14px; padding: 18px; cursor: pointer; font-weight: 600; overflow-wrap: anywhere; }
+.cms-block-item summary span { color: #66705d; font-size: 12px; padding-top: 3px; }
+.cms-block-item__body { border-top: 1px solid #dce1d4; padding: 20px; }
+.cms-block-item__actions { display: flex; gap: 20px; margin-top: 20px; }
+.cms-application-counts { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 12px; margin-bottom: 24px; }
+.cms-application-counts button { display: grid; gap: 12px; text-align: left; background: #fff; border: 1px solid #dce1d4; border-radius: 10px; padding: 18px; }
+.cms-application-counts button[aria-pressed="true"] { background: #20251d; color: white; }
+.cms-application-counts strong { font-size: 28px; }
+.cms-application-counts span { font-size: 12px; }
+.cms-application-search { display: flex; gap: 12px; flex: 1; max-width: 550px; }
+.cms-application-table { overflow-x: auto; padding: 0; }
+.cms-application-table table { width: 100%; border-collapse: collapse; min-width: 760px; text-align: left; }
+.cms-application-table th { color: #66705d; font-size: 12px; font-weight: 600; background: #f7f9f3; }
+.cms-application-table td,.cms-application-table th { padding: 18px; border-bottom: 1px solid #e3e7db; }
+.cms-application-table td { font-size: 14px; max-width: 300px; overflow-wrap: anywhere; }
+.cms-application-table td small { display: block; margin-top: 6px; }
+.cms-application-table tbody tr:hover { background: #f7f9f3; }
+.cms-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 20px; }
+.cms-status { display: inline-block; border-radius: 4px; background: #eef0e9; padding: 5px 8px; font-size: 12px; white-space: nowrap; }
+.cms-status--new { background: #e9f9cb; }
+.cms-status--confirmed { background: #d9f4e7; }
+.cms-status--rejected { background: #fae2df; }
+.cms-status--in_progress { background: #fff0c7; }
+.cms-application-layout { display: grid; grid-template-columns: minmax(0,1.8fr) minmax(280px,1fr); gap: 24px; align-items: start; }
+.cms-application-layout > * { min-width: 0; }
+.cms-application-fields { margin: 0; }
+.cms-application-fields > div { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,2fr); gap: 20px; padding: 14px 0; border-bottom: 1px solid #e3e7db; }
+.cms-application-fields dt { color: #66705d; font-size: 13px; }
+.cms-application-fields dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.cms-application-manage { display: grid; gap: 20px; position: sticky; top: 24px; }
+.cms-application-manage h2,.cms-application-manage h3 { margin-bottom: 0; }
+.cms-mail-status { display: grid; gap: 6px; margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.cms-mail-status span { color: #66705d; }
+.cms-status-field { display: grid; gap: 9px; }
+.cms-status-field select { min-height: 48px; }
+.cms-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .cms-settings-content {
   display: grid;
   gap: 24px;
@@ -237,12 +287,33 @@ small,
   gap: 16px;
 }
 @media (max-width: 900px) {
+  html:has(.cms-settings) { scroll-padding-bottom: 170px; }
+  .cms-settings-content input, .cms-settings-content textarea, .cms-settings-content button, .cms-settings-content summary { scroll-margin-bottom: 170px; }
   .cms-settings { grid-template-columns: minmax(0, 1fr); }
   .cms-settings-nav { position: static; max-height: none; }
-  .cms-settings-nav nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cms-settings-nav nav { grid-template-columns: repeat(2, minmax(0, 1fr)); max-height: 190px; }
+  .cms-application-counts { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .cms-application-layout { grid-template-columns: minmax(0,1fr); }
+  .cms-application-manage { position: static; grid-row: 1; }
+  .cms-settings { padding-bottom: 140px; }
+  .cms-settings-nav .cms-save { position: fixed; top: auto; left: 14px; right: 14px; bottom: 10px; z-index: 30; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px; margin: 0; border-color: #bac6a7; box-shadow: 0 6px 28px #20251d26; }
+  .cms-settings-nav .cms-save p { grid-column: 1 / -1; margin: 0; }
+  .cms-settings-nav .cms-save button { margin: 0; width: 100%; }
+  .cms-settings-nav .cms-save small { display: none; }
 }
 @media (max-width: 560px) {
   .cms-settings-fields { grid-template-columns: minmax(0, 1fr); }
+  .cms-application-fields > div { grid-template-columns: minmax(0,1fr); gap: 6px; }
+  .cms-application-counts { gap: 6px; }
+  .cms-application-counts button { padding: 12px; }
+  .cms-block-item__body { padding: 14px; }
+  .cms-application-table table { min-width: 0; }
+  .cms-application-table thead { display: none; }
+  .cms-application-table tbody { display: grid; }
+  .cms-application-table tr { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 18px 0; border-bottom: 1px solid #e3e7db; }
+  .cms-application-table td { padding: 0; border: 0; max-width: none; }
+  .cms-application-table td:nth-child(1), .cms-application-table td:nth-child(2), .cms-application-table td:nth-child(5) { grid-column: 1 / -1; }
+  .cms-application-table td:nth-child(5) { color: #66705d; font-size: 12px; }
 }
 .cms-brand {
   display: grid;

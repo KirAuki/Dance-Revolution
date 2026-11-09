@@ -3,7 +3,7 @@ import { useSiteSettings } from "../SiteSettings.jsx";
 import { daysBetween, countLabel } from "../../shared/site-settings.js";
 
 export default function About() {
-  const { event } = useSiteSettings();
+  const { event, home } = useSiteSettings();
   const days = daysBetween(event.startDate, event.endDate) + 1;
   return (
     <section className="about section section--light" id="about">
@@ -11,19 +11,11 @@ export default function About() {
         <p className="section-label reveal">01 / О проекте</p>
         <div>
           <h2 className="display-title display-title--marker reveal">
-            Здесь начинается{" "}
-            <em className="title-marker">новая культура танца.</em>
+            {home.about.title}{" "}
+            <em className="title-marker">{home.about.accent}</em>
           </h2>
           <div className="about__copy reveal">
-            <p>
-              «Танцевальная революция» — международная премия-конкурс для
-              профессиональных и самодеятельных хореографических коллективов.
-            </p>
-            <p>
-              Конкурс объединит большую сцену, профессиональную
-              оценку, денежные премии и возможности для дальнейшего творческого
-              развития.
-            </p>
+            {home.about.text.split(/\n\s*\n/).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
           </div>
         </div>
       </div>
@@ -33,15 +25,15 @@ export default function About() {
           <span>{countLabel(days, ["конкурсный день", "конкурсных дня", "конкурсных дней"]).replace(/^\d+ /, "")}</span>
         </article>
         <article className="fact">
-          <Counter value={15} suffix="+" />
+          <Counter value={home.nominations.items.length} suffix="+" />
           <span>направлений</span>
         </article>
         <article className="fact">
-          <Counter value={7} suffix="" />
+          <Counter value={home.categories.ages.length} suffix="" />
           <span>возрастных категорий</span>
         </article>
         <article className="fact fact--dark">
-          <strong>5+</strong>
+          <strong>{home.registration.minParticipants}+</strong>
           <span>участников в коллективе</span>
         </article>
       </div>

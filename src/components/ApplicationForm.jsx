@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  ages,
-  levels,
+  applicationOptions,
   limits,
-  nominations,
   stepFields,
   validateApplication,
 } from "../../shared/application.js";
@@ -76,7 +74,8 @@ function Field({
 }
 
 export default function ApplicationForm() {
-  const { contacts, documents } = useSiteSettings();
+  const { contacts, documents, home } = useSiteSettings();
+  const options = applicationOptions(home);
   const [values, setValues] = useState(initialValues);
   const [step, setStep] = useState(0);
   const [furthest, setFurthest] = useState(0);
@@ -88,6 +87,7 @@ export default function ApplicationForm() {
   const formRef = useRef(null);
   const dialogRef = useRef(null);
   const requestRef = useRef(null);
+  const submissionRef = useRef(null);
   const reduced = useReducedMotion();
 
   useEffect(() => () => requestRef.current?.abort(), []);
@@ -124,7 +124,7 @@ export default function ApplicationForm() {
   }
 
   function validateThrough(lastStep) {
-    const all = validateApplication(values);
+    const all = validateApplication(values, home);
     const fields = stepFields.slice(0, lastStep + 1).flat();
     const relevant = Object.fromEntries(
       fields.filter((name) => all[name]).map((name) => [name, all[name]]),
@@ -154,6 +154,9 @@ export default function ApplicationForm() {
       return;
     }
     if (!validateThrough(2)) return;
+    const payload = JSON.stringify(values);
+    if (submissionRef.current?.payload !== payload)
+      submissionRef.current = { payload, key: crypto.randomUUID() };
     const controller = new AbortController();
     requestRef.current = controller;
     setSubmitting(true);
@@ -162,8 +165,8 @@ export default function ApplicationForm() {
     try {
       const response = await fetch("/api/application", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        headers: { "Content-Type": "application/json", "Idempotency-Key": submissionRef.current.key },
+        body: payload,
         signal: controller.signal,
       });
       const result = await response.json().catch(() => ({}));
@@ -175,6 +178,7 @@ export default function ApplicationForm() {
         throw new Error(result.message || "Не удалось отправить заявку.");
       }
       setSuccess({ number: result.applicationNumber, email: values.email });
+      submissionRef.current = null;
       setValues(initialValues());
       setStep(0);
       setFurthest(0);
@@ -182,7 +186,7 @@ export default function ApplicationForm() {
     } catch (error) {
       const message =
         error.name === "AbortError"
-          ? "Время ожидания истекло. Проверьте почту перед повторной отправкой."
+          ? "Сервер не ответил вовремя. Повторите отправку: копия той же заявки не создастся."
           : error.message;
       setAlert(
         `${message} Свяжитесь с Оргкомитетом: ${contacts.email} или ${contacts.phone}.`,
@@ -294,27 +298,27 @@ export default function ApplicationForm() {
             {field("participantCount", "Количество участников", {
               type: "number",
               inputMode: "numeric",
-              min: 5,
-              max: 500,
+              min: options.minParticipants,
+              max: options.maxParticipants,
               step: 1,
-              hint: "Не менее 5 человек",
+              hint: `Не менее ${options.minParticipants} человек`,
             })}
             {field("duration", "Хронометраж", {
               inputMode: "text",
               placeholder: "03:30",
-              hint: "Не более 04:00",
+              hint: `Не более ${String(Math.floor(options.maxDurationSeconds / 60)).padStart(2, "0")}:${String(options.maxDurationSeconds % 60).padStart(2, "0")}`,
             })}
           </div>
           {field("nomination", "Номинация", {
-            options: nominations,
+            options: options.nominations,
             placeholder: "Выберите номинацию",
           })}
           {field("ageCategory", "Возрастная категория", {
-            options: ages,
+            options: options.ages,
             placeholder: "Выберите категорию",
           })}
           {field("professionalLevel", "Профессиональный уровень", {
-            options: levels,
+            options: options.levels,
             placeholder: "Выберите уровень",
           })}
           <div className="form-actions form-actions--end">{next}</div>
@@ -494,7 +498,7 @@ export default function ApplicationForm() {
         <h2 id="success-title">Добро пожаловать в революцию.</h2>
         <p>
           {success &&
-            `Номер заявки: ${success.number}. Подтверждение направлено на ${success.email}.`}
+            `Заявка ${success.number} сохранена. Оргкомитет свяжется с вами по указанным контактам. Уведомление придёт на ${success.email}, когда будет отправлено.`}
         </p>
         <button
           type="button"

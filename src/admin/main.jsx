@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { validateArticles, formatArticleDate } from "../../shared/news.js";
 import { validateSiteSettings } from "../../shared/site-settings.js";
 import SettingsEditor from "./SettingsEditor.jsx";
+import ApplicationsPage from "./ApplicationsPage.jsx";
 import "./styles.css";
 
 async function request(url, { method = "GET", data, csrf, file } = {}) {
@@ -207,7 +208,10 @@ const transliterate = (title) => {
 };
 
 function Admin() {
-  const [view, setView] = useState("news");
+  const routeView = () => location.pathname.startsWith("/admin/applications") ? "applications" : location.pathname.startsWith("/admin/settings") ? "settings" : "news";
+  const [view, setView] = useState(routeView);
+  const [applicationRecord, setApplicationRecord] = useState(null);
+  const [applicationDirty, setApplicationDirty] = useState(false);
   const [siteDraft, setSiteDraft] = useState(null);
   const [siteDirty, setSiteDirty] = useState(false);
   const [session, setSession] = useState(undefined);
@@ -240,14 +244,21 @@ function Admin() {
     if (view === "settings" && !siteDraft) loadSettings();
   }, [session]);
   useEffect(() => {
-    if (!dirty && !siteDirty) return;
+    if (!dirty && !siteDirty && !applicationDirty) return;
     const warn = (event) => {
       event.preventDefault();
       event.returnValue = "";
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty, siteDirty]);
+  }, [dirty, siteDirty, applicationDirty]);
+  useEffect(() => {
+    const navigate = () => {
+      switchView(routeView(), false);
+    };
+    window.addEventListener("popstate", navigate);
+    return () => window.removeEventListener("popstate", navigate);
+  }, [view, dirty, siteDirty, applicationDirty]);
   useEffect(() => {
     if (preview) previewRef.current?.showModal();
   }, [preview]);
@@ -258,7 +269,7 @@ function Admin() {
   }
   function canLeave() {
     return (
-      (!dirty && !siteDirty) ||
+      (!dirty && !siteDirty && !applicationDirty) ||
       window.confirm("Есть несохранённые изменения. Уйти без сохранения?")
     );
   }
@@ -271,15 +282,22 @@ function Admin() {
     } catch (error) { fail(error); }
     finally { setBusy(false); }
   }
-  async function switchView(next) {
-    if (next === view || !canLeave()) return;
+  async function switchView(next, push = true) {
+    if (next === view) return;
+    if (!canLeave()) {
+      if (!push) history.pushState(null, "", `/admin/${view === "news" ? "" : view}`);
+      return;
+    }
     setDraft(null);
     setDirty(false);
     setSiteDraft(null);
     setSiteDirty(false);
+    setApplicationRecord(null);
+    setApplicationDirty(false);
     setError("");
     setNotice("");
     setView(next);
+    if (push) history.pushState(null, "", `/admin/${next === "news" ? "" : next}`);
     if (next === "settings") await loadSettings();
   }
   async function saveSettings() {
@@ -463,6 +481,8 @@ function Admin() {
       setSiteDraft(null);
       setSiteDirty(false);
       setDirty(false);
+      setApplicationRecord(null);
+      setApplicationDirty(false);
       setError("");
     } catch (error) {
       fail(error);
@@ -480,7 +500,7 @@ function Admin() {
     return (
       <>
         <Login
-          expired={Boolean(draft || siteDraft)}
+          expired={Boolean(draft || siteDraft || applicationRecord)}
           onLogin={(value) => {
             setError("");
             setSession(value);
@@ -515,21 +535,22 @@ function Admin() {
       </header>
       <main className="cms-main">
         <nav className="cms-section-tabs" aria-label="Разделы админки">
+          <button className="cms-button" aria-pressed={view === "applications"} disabled={busy} onClick={() => switchView("applications")}>Заявки</button>
           <button className="cms-button" aria-pressed={view === "news"} disabled={busy} onClick={() => switchView("news")}>Новости и статьи</button>
           <button className="cms-button" aria-pressed={view === "settings"} disabled={busy} onClick={() => switchView("settings")}>Настройки сайта</button>
         </nav>
         <div className="cms-page-heading">
           <div>
-            <p className="cms-eyebrow">Жизнь конкурса</p>
+            <p className="cms-eyebrow">Управление конкурсом</p>
             <h1>
-              {view === "settings" ? "Настройки сайта" : draft
+              {view === "applications" ? "Заявки участников" : view === "settings" ? "Настройки сайта" : draft
                 ? draft.id
                   ? "Редактировать запись"
                   : "Новая публикация"
                 : "Новости и статьи"}
             </h1>
           </div>
-          {view === "settings" ? <a className="cms-button" href="/" target="_blank" rel="noreferrer">Открыть сайт</a> : draft ? (
+          {view !== "news" ? <a className="cms-button" href="/" target="_blank" rel="noreferrer">Открыть сайт</a> : draft ? (
             <button className="cms-button" onClick={back} disabled={busy}>
               К списку публикаций
             </button>
@@ -558,7 +579,7 @@ function Admin() {
             {notice}
           </p>
         )}
-        {view === "settings" ? <SettingsEditor record={siteDraft} dirty={siteDirty} busy={busy}
+        {view === "applications" ? <ApplicationsPage request={request} csrf={session.csrf} fail={fail} record={applicationRecord} setRecord={setApplicationRecord} dirty={applicationDirty} setDirty={setApplicationDirty} /> : view === "settings" ? <SettingsEditor record={siteDraft} dirty={siteDirty} busy={busy}
           onChange={settings => { setSiteDraft(current => ({...current,settings})); setSiteDirty(true); setNotice(""); }}
           onSave={saveSettings} onReload={() => { if (canLeave()) { setNotice(""); loadSettings(); } }} onUpload={uploadSetting} /> : !draft ? (
           <>
@@ -921,7 +942,7 @@ function Admin() {
           </button>
         </div>
         {preview && (
-          <iframe title="Предпросмотр статьи" sandbox="" srcDoc={preview} />
+          <iframe title="Предпросмотр статьи" sandbox="allow-same-origin" srcDoc={preview} />
         )}
       </dialog>
     </div>

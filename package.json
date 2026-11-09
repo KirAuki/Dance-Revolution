@@ -4,15 +4,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "start": "node --env-file-if-exists=.env.local server/index.js",
-    "admin:create": "node --env-file-if-exists=.env.local server/admin-cli.js",
-    "admin:password": "node --env-file-if-exists=.env.local server/admin-cli.js --reset",
+    "dev": "node scripts/dev.mjs",
+    "start": "node scripts/python.mjs -m backend.cli serve",
+    "db:init": "node scripts/python.mjs -m backend.cli init-db",
+    "db:import": "node scripts/python.mjs -m backend.cli import-sqlite",
+    "admin:create": "node scripts/python.mjs -m backend.cli admin",
+    "admin:password": "node scripts/python.mjs -m backend.cli admin --reset",
     "build": "vite build",
-    "preview": "vite preview --host 127.0.0.1",
-    "test": "node --test tests/*.test.js",
+    "preview": "node scripts/python.mjs -m backend.cli serve",
+    "test": "node scripts/python.mjs -m pytest tests/test_backend.py -q && node --test tests/*.test.js",
     "test:e2e": "playwright test",
-    "check": "npm run test && npm run build"
+    "check": "npm run test && npm run build",
+    "release": "npm run build && node scripts/python.mjs -m backend.package"
   },
   "engines": {
     "node": ">=24.0.0"

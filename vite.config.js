@@ -1,75 +1,36 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "node:path";
-import { readFile } from "node:fs/promises";
-import { createApplication } from "./server/app.js";
 import { renderSiteShell } from "./shared/site-html.js";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
-function localServer() {
-  const connect = async (server, preview = false) => {
-    const root = server.config.root;
-    let styles = '<link rel="stylesheet" href="/src/styles.css">';
-    if (preview) {
-      const html = await readFile(
-        path.resolve(root, server.config.build.outDir, "index.html"),
-        "utf8",
-      );
-      styles = [...html.matchAll(/<link\b(?=[^>]*rel="stylesheet")[^>]*>/g)]
-        .map((match) => match[0])
-        .join("");
-    }
-    const app = createApplication({
-      root,
-      dataDir: process.env.DATA_DIR || path.join(root, ".data"),
-      styles,
-      transformHtml: preview
-        ? undefined
-        : (html) => server.transformIndexHtml("/news", html),
-    });
-    server.httpServer?.once("close", () => app.close());
-    server.middlewares.use(async (request, response, next) => {
-      if (await app.handle(request, response)) return;
-      const pathname = request.url?.split("?")[0];
-      if ((pathname === "/" || pathname === "/index.html") && ["GET", "HEAD"].includes(request.method)) {
-        const template = await readFile(path.join(root, preview ? "dist/index.html" : "index.html"), "utf8");
-        const html = renderSiteShell(template, app.store.settings().settings);
-        response.setHeader("Content-Type", "text/html; charset=utf-8");
-        response.setHeader("Cache-Control", "no-store");
-        response.end(request.method === "HEAD" ? undefined : preview ? html : await server.transformIndexHtml(request.url, html));
-        return;
-      }
-      if (pathname === "/admin" || pathname === "/admin/")
-        request.url = request.url.replace(pathname, "/admin/index.html");
-      next();
-    });
-  };
+function pythonBackend() {
   return {
-    name: "local-node-server",
-    configureServer: (server) => connect(server),
-    configurePreviewServer: (server) => connect(server, true),
+    name: "python-backend",
+    configureServer(server) {
+      server.middlewares.use(async (request,response,next)=>{
+        const pathname=request.url?.split("?")[0];
+        if(pathname === "/" || pathname === "/index.html") {
+          try {
+            const api=await fetch(`${process.env.API_ORIGIN || "http://127.0.0.1:3000"}/api/settings`,{signal:AbortSignal.timeout(5000)});
+            if(!api.ok)throw new Error("Settings unavailable");
+            const {settings}=await api.json();
+            const template=await readFile(path.join(server.config.root,"index.html"),"utf8");
+            response.setHeader("Content-Type","text/html; charset=utf-8");response.setHeader("Cache-Control","no-store");
+            response.end(await server.transformIndexHtml(request.url,renderSiteShell(template,settings)));
+          }catch {response.statusCode=503;response.end("Python API is unavailable. Start npm run dev after database initialization.");}
+          return;
+        }
+        if(pathname === "/admin" || pathname?.startsWith("/admin/"))request.url="/admin/index.html";
+        next();
+      });
+    },
   };
 }
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
-  for (const key of [
-    "RESEND_API_KEY",
-    "APPLICATION_TO_EMAIL",
-    "APPLICATION_FROM_EMAIL",
-    "DATA_DIR",
-  ]) {
-    if (process.env[key] === undefined && env[key]) process.env[key] = env[key];
-  }
-  return {
-    plugins: [react(), localServer()],
-    build: {
-      assetsDir: "bundles",
-      rollupOptions: {
-        input: {
-          main: "index.html",
-          admin: "admin/index.html",
-        },
-      },
-    },
-  };
+export default defineConfig(()=>{
+  const proxy={};
+  for(const route of ["/api","/media","/documents","/bundles","/news","/privacy","/consent","/health","/sitemap.xml","/robots.txt"])
+    proxy[route]={target:process.env.API_ORIGIN || "http://127.0.0.1:3000",changeOrigin:false};
+  return {plugins:[react(),pythonBackend()],server:{proxy,watch:{ignored:["**/release/**","**/.data/**","**/.qa/**"]}},build:{assetsDir:"bundles",rollupOptions:{input:{main:"index.html",admin:"admin/index.html"}}}};
 });

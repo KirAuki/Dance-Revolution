@@ -1,62 +1,23 @@
 import { useSiteSettings } from "../SiteSettings.jsx";
-import { eventDate } from "../../shared/site-settings.js";
+import { homeText } from "../../shared/site-settings.js";
 
 export default function Format() {
-  const { event } = useSiteSettings();
-  return (
-    <section className="stage section section--dark" id="format">
-      <div className="shell section-heading section-heading--right">
-        <p className="section-label reveal">02 / Формат</p>
-        <h2 className="display-title reveal">
-          Энергия <em>большой сцены.</em>
-        </h2>
-      </div>
-      <div className="shell stage__visual reveal parallax-media">
-        <img
-          src="/assets/dancers-stage.webp?v=2026-11-07"
-          alt="Хореографический коллектив выступает на современной сцене"
-          width="1600"
-          height="900"
-        />
-        <div className="stage__caption">
-          <span>КОНКУРСНАЯ ПРОГРАММА</span>
-          <strong>до 4 минут на номер</strong>
-        </div>
-      </div>
-      <div className="shell format-grid reveal">
-        <article>
-          <span>01</span>
-          <h3>Только коллективы</h3>
-          <p>
-            К участию принимаются составы от 5 человек. Соло, дуэты и малые
-            формы не участвуют.
-          </p>
-        </article>
-        <article>
-          <span>02</span>
-          <h3>Профессиональные уровни</h3>
-          <p>
-            От молодых ансамблей без звания до народных, заслуженных и
-            образцовых коллективов.
-          </p>
-        </article>
-        <article>
-          <span>03</span>
-          <h3>Оценка каждого номера</h3>
-          <p>
-            Жюри оценивает выступления по десятибалльной системе на основании
-            семи критериев.
-          </p>
-        </article>
-        <article>
-          <span>04</span>
-          <h3>Награждение {eventDate(event.endDate)}</h3>
-          <p>
-            Лауреаты, дипломанты, Гран-при, специальные призы и отдельная
-            премиальная программа.
-          </p>
-        </article>
-      </div>
-    </section>
-  );
+  const settings = useSiteSettings();
+  const { format, registration } = settings.home;
+  return <section className="stage section section--dark" id="format">
+    <div className="shell section-heading section-heading--right">
+      <p className="section-label reveal">02 / Формат</p>
+      <h2 className="display-title reveal">{format.title} <em>{format.accent}</em></h2>
+    </div>
+    <div className="shell stage__visual reveal parallax-media">
+      <img src={format.image} alt="Хореографический коллектив на сцене" width="1600" height="900" />
+      <div className="stage__caption"><span>{format.caption}</span><strong>до {Math.floor(registration.maxDurationSeconds / 60)}:{String(registration.maxDurationSeconds % 60).padStart(2, "0")} на номер</strong></div>
+    </div>
+    <div className="shell format-grid reveal">
+      {format.items.map((item, index) => <article key={index}>
+        <span>{String(index + 1).padStart(2, "0")}</span>
+        <h3>{homeText(item.title, settings)}</h3><p>{homeText(item.text, settings)}</p>
+      </article>)}
+    </div>
+  </section>;
 }

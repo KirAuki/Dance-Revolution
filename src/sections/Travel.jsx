@@ -2,7 +2,7 @@ import { useSiteSettings } from "../SiteSettings.jsx";
 import { money, dayCount, daysBetween, countLabel } from "../../shared/site-settings.js";
 
 export default function Travel() {
-  const { event, hotel, prices } = useSiteSettings();
+  const { event, hotel, prices, home } = useSiteSettings();
   const stay = `${dayCount(event.arrivalDate, event.departureDate)} / ${countLabel(daysBetween(event.arrivalDate, event.departureDate), ["ночь", "ночи", "ночей"])}`;
   return (
     <section className="travel section section--dark" id="travel">
@@ -45,10 +45,7 @@ export default function Travel() {
           <strong>{money(prices.localFirst)}</strong>
           <small>за участника в первом номере</small>
           <ul>
-            <li>Медаль каждому участнику</li>
-            <li>Индивидуальный электронный диплом</li>
-            <li>Фото- и видеорепортаж</li>
-            <li>Фирменный мерч</li>
+            {home.travel.localBenefits.map((item, index) => <li key={index}>{item.title}</li>)}
           </ul>
           <p>Второй и последующий номер — {money(prices.localAdditional)} за человека.</p>
         </article>
@@ -60,7 +57,7 @@ export default function Travel() {
             <li>Проживание {stay}</li>
             <li>{hotel.meals}</li>
             <li>{hotel.transport}</li>
-            <li>Конкурс, медаль, диплом и мерч</li>
+            <li>{home.travel.participantBenefit}</li>
           </ul>
         </article>
         <article className="price-card">
@@ -71,13 +68,12 @@ export default function Travel() {
             <li>Проживание {stay}</li>
             <li>{hotel.meals}</li>
             <li>{hotel.transport}</li>
-            <li>Организационное сопровождение</li>
+            <li>{home.travel.companionBenefit}</li>
           </ul>
         </article>
       </div>
       <p className="shell currency-note reveal">
-        Цены указаны в российских рублях. Стоимость в KZT и BYN рассчитывается
-        по курсу на дату подачи заявки.
+        {home.travel.currencyNote}
       </p>
     </section>
   );

@@ -10,7 +10,7 @@ const socialLinks = [
 ];
 
 export default function Footer() {
-  const { event, contacts, documents } = useSiteSettings();
+  const { event, contacts, documents, home } = useSiteSettings();
   return (
     <footer className="footer" id="contacts">
       <div className="shell footer__hero">
@@ -51,7 +51,7 @@ export default function Footer() {
       </div>
       <div className="shell footer__bottom">
         <span>© {event.startDate.slice(0, 4)} «Танцевальная революция»</span>
-        <span>Организатор: ИП Шубенко Дмитрий Геннадьевич</span>
+        <span>Организатор: {home.footer.organizer}</span>
         <span>{event.city}</span>
       </div>
     </footer>

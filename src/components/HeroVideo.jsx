@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "../hooks/useReducedMotion.js";
+import { useSiteSettings } from "../SiteSettings.jsx";
 
 export default function HeroVideo() {
+  const { home } = useSiteSettings();
   const ref = useRef(null);
   const reduceMotion = useReducedMotion();
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function HeroVideo() {
       loop
       playsInline
       preload="metadata"
-      poster="/assets/hero-ensemble-poster.webp"
+      poster={home.hero.poster}
       aria-hidden="true"
     >
       <source src="/assets/hero-video.mp4" type="video/mp4" />
