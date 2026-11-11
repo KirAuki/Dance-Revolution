@@ -1,9 +1,9 @@
 {
   "event": {
-    "startDate": "2027-07-03",
-    "endDate": "2027-07-04",
-    "arrivalDate": "2027-07-02",
-    "departureDate": "2027-07-05",
+    "startDate": "2027-04-03",
+    "endDate": "2027-04-04",
+    "arrivalDate": "2027-04-02",
+    "departureDate": "2027-04-05",
     "localDeadline": "2027-03-29",
     "travelDeadline": "2027-03-22",
     "city": "Москва",
@@ -37,10 +37,15 @@
     "phone": "+7 925 657-77-17",
     "hours": "ежедневно с 11:00 до 20:00",
     "telegramUrl": "https://t.me/dancermsk",
-    "instagramUrl": "https://www.instagram.com/dances.revolution/?hl=ru",
     "vkUrl": "https://vk.ru/dancesrevolution",
-    "maxUrl": "https://max.ru/u/f9LHodD0cOJKdHAeg6R2Way_nytUm2F-CI07INChJNvouwjgtYFG5XrbjhM",
-    "whatsappUrl": "https://wa.me/79256577717"
+    "maxUrl": "https://max.ru/u/f9LHodD0cOJKdHAeg6R2Way_nytUm2F-CI07INChJNvouwjgtYFG5XrbjhM"
+  },
+  "seo": {
+    "title": "Танцевальная революция — {dates}, {city}",
+    "description": "Международный хореографический конкурс «Танцевальная революция»: {dates}, {city}, {venue}. Номинации, жюри, условия участия и онлайн-заявка.",
+    "image": "/assets/dancers-stage.webp",
+    "googleVerification": "",
+    "yandexVerification": ""
   },
   "documents": {
     "regulations": "/docs/polozhenie-tancevalnaya-revolyutsiya-2027.docx"

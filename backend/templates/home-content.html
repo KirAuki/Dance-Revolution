@@ -1,0 +1,24 @@
+<main class="server-home">
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    <img class="hero__video" src="{{ settings.home.hero.poster }}" alt="" fetchpriority="high">
+    <div class="hero__shade"></div>
+    <div class="shell hero__content">
+      <p class="eyebrow">{{ settings.home.hero.eyebrow }}</p>
+      <div class="hero__date"><time datetime="{{ settings.event.startDate }}">{{ dates }}</time><span>{{ settings.event.city }}</span></div>
+      <h1 id="hero-title" class="hero__title"><span>ТАНЦЕВАЛЬНАЯ</span><strong>РЕВОЛЮЦИЯ</strong></h1>
+      <p class="hero__lead">{{ settings.home.hero.lead }}</p>
+      <div class="hero__actions"><a class="button button--lime button--large" href="#application">Подать заявку</a><a class="button button--ghost button--large" href="{{ settings.documents.regulations }}" download>Скачать положение</a></div>
+    </div>
+    <div class="shell hero__meta"><div><span>Даты</span><strong>{{ dates }}</strong></div><div><span>Город</span><strong>{{ settings.event.city }}</strong></div><div><span>Площадка</span><a href="{{ settings.venue.mapUrl }}">{{ settings.venue.name }}</a></div></div>
+  </section>
+  <div class="shell server-home__content">
+    <section id="about"><h2>{{ settings.home.about.title }} {{ settings.home.about.accent }}</h2>{% for paragraph in settings.home.about.text|paragraphs %}<p>{{ paragraph }}</p>{% endfor %}</section>
+    <section id="venue"><h2>{{ settings.venue.name }}</h2><p>{{ settings.event.city }}, {{ settings.venue.address }}</p><p>{{ settings.venue.description }}</p></section>
+    <section id="nominations"><h2>Номинации конкурса</h2><p>{{ settings.home.nominations.intro }}</p><dl>{% for item in settings.home.nominations['items'] %}<dt>{{ item.title }}</dt><dd>{{ item.description }}</dd>{% endfor %}</dl></section>
+    <section id="jury"><h2>Жюри конкурса</h2>{% for person in settings.jury %}<h3>{{ person.name }}</h3><p>{{ person.bio or person.role }}</p>{% endfor %}</section>
+    <section id="schedule"><h2>Программа конкурса</h2>{% for day in settings.program %}<h3>{{ settings.event[['arrivalDate', 'startDate', 'endDate', 'departureDate'][loop.index0]]|date_label }} — {{ day.title }}</h3><ul>{% for item in day.text.splitlines() if item.strip() %}<li>{{ item }}</li>{% endfor %}</ul>{% if day.note %}<p>{{ day.note }}</p>{% endif %}{% endfor %}</section>
+    <section id="news"><h2>{{ settings.news.title }}</h2><p>{{ settings.news.lead }}</p>{% for item in articles %}<article><h3><a href="/news/{{ item.slug }}">{{ item.title }}</a></h3><p>{{ item.description }}</p></article>{% endfor %}<a class="text-link" href="/news">Все новости и статьи</a></section>
+    <section id="application"><h2>Заявка на участие</h2><p>{{ settings.home.registration.intro }}</p><p>Приём заявок: {{ settings.event.localLabel }} — до {{ settings.event.localDeadline|date_label }}, иногородние коллективы — до {{ settings.event.travelDeadline|date_label }}.</p><p>Для заполнения интерактивной формы включите JavaScript. Связь с Оргкомитетом: {{ inline('{email}', settings) }}, {{ inline('{phone}', settings) }}.</p><p><a href="{{ settings.documents.regulations }}">Положение конкурса</a></p></section>
+  </div>
+</main>
+<footer class="page-footer"><span>{{ settings.home.footer.organizer }}</span><nav class="page-footer__documents" aria-label="Документы">{% for key in ['privacy', 'consent', 'cookies'] %}<a href="/{{ key }}">{{ settings.pages[key].title }}</a>{% endfor %}</nav></footer>

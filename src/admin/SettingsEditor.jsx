@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { settingsGroups, homeBlocks, eventRange, dayCount, validDate, validImage, validDocument } from "../../shared/site-settings.js";
+import { settingsGroups, homeBlocks, eventRange, dayCount, validDate, validImage, validDocument, homepageSeo } from "../../shared/site-settings.js";
 import { pageDefinitions } from "../../shared/site-pages.js";
 
 function SettingField({ field, value, name, onChange, onUpload }) {
@@ -85,6 +85,14 @@ export default function SettingsEditor({ record, dirty, busy, onChange, onSave, 
       </div>
       {settingsGroups.filter(group=>active === group.key).map(group => <section className="cms-panel" id={`settings-${group.key}`} key={group.key}>
         <h2>{group.title}</h2>
+        {group.key === "seo" && <>
+          <p className="cms-muted">Title и description главной страницы попадают в HTML сразу с сервера. Вставки {"{dates}"}, {"{city}"}, {"{venue}"} и {"{year}"} подставляют даты, город, площадку и год из настроек. Поисковик может выбрать свой текст для выдачи.</p>
+          <div className="cms-seo-preview" aria-label="Предпросмотр заголовка и описания">
+            <strong>{homepageSeo(settings).title}</strong>
+            <p>{homepageSeo(settings).description}</p>
+          </div>
+          <p className="cms-muted">Для подтверждения владения сайтом вставляйте только значение content из метатега Google или Яндекса. Счётчики аналитики при этом не подключаются. Заголовки и описания статей берутся из редактора публикаций.</p>
+        </>}
         <div className="cms-settings-fields">
           {group.fields.map(field => <SettingField key={field.key} field={field} name={`${group.key}.${field.key}`}
             value={settings[group.key][field.key]} onChange={value => updateField(group.key, field.key, value)} onUpload={onUpload} />)}

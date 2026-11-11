@@ -1,12 +1,10 @@
-import { eventRange } from "./site-settings.js";
+import { homepageSeo } from "./site-settings.js";
 
 const escape = value => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 
 export function renderSiteShell(html, settings) {
-  const { event, venue, contacts } = settings;
-  const dates = eventRange(event.startDate, event.endDate);
-  const title = `Танцевальная революция — ${dates}, ${event.city}`;
-  const description = `Международная премия-конкурс в сфере хореографического искусства «Танцевальная революция». ${event.city}, ${dates}. ${venue.name}.`;
+  const { contacts } = settings;
+  const { title, description } = homepageSeo(settings);
   // A non-executable data block works with the production CSP and avoids stale dates on first paint.
   const data = JSON.stringify(settings).replaceAll("<", "\\u003c").replaceAll("\u2028", "\\u2028").replaceAll("\u2029", "\\u2029");
   return html.replace(/<title>[^<]*<\/title>/, () => `<title>${escape(title)}</title>`)

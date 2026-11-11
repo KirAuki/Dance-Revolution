@@ -81,7 +81,7 @@ export function validateApplication(body, home) {
   const duration = data.duration.match(/^(\d{1,2}):([0-5]\d)$/);
   const seconds = duration ? Number(duration[1]) * 60 + Number(duration[2]) : 0;
   if (!duration || seconds <= 0 || seconds > options.maxDurationSeconds)
-    errors.duration = "Укажите хронометраж в формате 03:30 в пределах допустимого времени.";
+    errors.duration = "Укажите длительность больше нуля и не более допустимого времени. Секунды — от 0 до 59.";
   for (const key of ["regulationsAccepted", "personalDataAccepted"]) {
     if (body[key] !== true) errors[key] = "Необходимо подтвердить согласие.";
   }

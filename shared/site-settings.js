@@ -9,6 +9,17 @@ export const settingsGroups = schema;
 export const homeBlocks = homeSchema;
 export const defaultSiteSettings = { ...defaults, pages: defaultSitePages, home: homeDefaults };
 
+export function homepageSeo(settings) {
+  const seo = settings.seo ?? defaults.seo;
+  const { event, venue } = settings;
+  const tokens = {
+    dates: validDate(event.startDate) && validDate(event.endDate) ? eventRange(event.startDate, event.endDate) : "",
+    city: event.city, venue: venue.name, year: event.startDate.slice(0, 4),
+  };
+  const expand = value => value.replace(/\{(dates|city|venue|year)\}/g, (_, key) => tokens[key]);
+  return { title: expand(seo.title), description: expand(seo.description), image: seo.image };
+}
+
 export function validDate(value) {
   if (typeof value !== "string" || !/^20\d{2}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T12:00:00Z`);
@@ -45,7 +56,8 @@ function fieldValue(value, field) {
 export function validateSiteSettings(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("Настройки не переданы.");
   // Older records have no editable pages yet.
-  input = { ...input, news: input.news === undefined ? defaultSiteSettings.news : input.news };
+  input = { ...input, news: input.news === undefined ? defaultSiteSettings.news : input.news,
+    seo: input.seo === undefined ? defaultSiteSettings.seo : input.seo };
   const settings = {};
   for (const group of settingsGroups) {
     settings[group.key] = {};
@@ -55,6 +67,10 @@ export function validateSiteSettings(input) {
     }
   }
   const event = settings.event;
+  for (const key of ["googleVerification", "yandexVerification"]) {
+    if (settings.seo[key] && !/^[a-zA-Z0-9_-]+$/.test(settings.seo[key]))
+      throw new Error("Вставьте только код подтверждения, без HTML-тега.");
+  }
   if (event.startDate > event.endDate || event.arrivalDate > event.startDate || event.departureDate < event.endDate)
     throw new Error("Заезд должен быть не позже начала конкурса, а выезд — не раньше финала.");
   if (event.localDeadline > event.startDate || event.travelDeadline > event.startDate)
@@ -95,7 +111,7 @@ export function validateSiteSettings(input) {
     throw new Error("Минимум участников не может превышать максимум.");
   return settings;
 }
-export const settingsImages = settings => [settings.venue.image, settings.hotel.image, settings.hotel.roomImage, ...settings.jury.map(person => person.image), ...homeBlocks.flatMap(block => {
+export const settingsImages = settings => [settings.seo?.image, settings.venue.image, settings.hotel.image, settings.hotel.roomImage, ...settings.jury.map(person => person.image), ...homeBlocks.flatMap(block => {
   const source = (settings.home ?? homeDefaults)[block.key];
   return [...block.fields.filter(f => f.type === "image").map(f => source[f.key]), ...block.lists.flatMap(list => source[list.key].flatMap(item => list.fields.filter(f => f.type === "image").map(f => item[f.key])))];
 })].filter(Boolean);

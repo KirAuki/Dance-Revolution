@@ -4,6 +4,7 @@ export const defaultSitePages = initialPages;
 export const pageDefinitions = [
   { key: "privacy", label: "Политика конфиденциальности" },
   { key: "consent", label: "Согласие на обработку ПД" },
+  { key: "cookies", label: "Использование cookies" },
 ];
 
 export function validateSitePages(input) {
@@ -13,7 +14,8 @@ export function validateSitePages(input) {
     return value.trim();
   };
   return Object.fromEntries(pageDefinitions.map(({ key, label }) => {
-    const page = input?.[key];
+    // Settings saved before the cookies page was added remain editable.
+    const page = key === "cookies" && input?.cookies === undefined ? initialPages.cookies : input?.[key];
     if (!Array.isArray(page?.sections) || page.sections.length < 1 || page.sections.length > 20)
       throw new Error(`На странице «${label}» должно быть от 1 до 20 разделов.`);
     return [key, {

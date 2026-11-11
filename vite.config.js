@@ -30,7 +30,7 @@ function pythonBackend() {
 
 export default defineConfig(()=>{
   const proxy={};
-  for(const route of ["/api","/media","/documents","/bundles","/news","/privacy","/consent","/health","/sitemap.xml","/robots.txt"])
+  for(const route of ["/api","/media","/documents","/bundles","/news","/privacy","/consent","/cookies","/health","/sitemap.xml","/robots.txt"])
     proxy[route]={target:process.env.API_ORIGIN || "http://127.0.0.1:3000",changeOrigin:false};
   return {plugins:[react(),pythonBackend()],server:{proxy,watch:{ignored:["**/release/**","**/.data/**","**/.qa/**"]}},build:{assetsDir:"bundles",rollupOptions:{input:{main:"index.html",admin:"admin/index.html"}}}};
 });

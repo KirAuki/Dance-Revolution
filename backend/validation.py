@@ -87,7 +87,7 @@ def merge_defaults(saved, defaults=None):
     result = copy.deepcopy(defaults)
     for key, value in saved.items():
         result[key] = merge_defaults(value, defaults[key]) if isinstance(value, dict) and isinstance(defaults.get(key), dict) else copy.deepcopy(value)
-    for key in ("tracksEmail", "telegramLabel", "maxLabel"):
+    for key in ("tracksEmail", "telegramLabel", "maxLabel", "instagramUrl", "whatsappUrl"):
         if isinstance(result.get("contacts"), dict):
             result["contacts"].pop(key, None)
     return result
@@ -96,7 +96,7 @@ def merge_defaults(saved, defaults=None):
 def validate_settings(value):
     check(isinstance(value, dict), "Настройки не переданы.")
     for group in SCHEMA:
-        if group["key"] == "news" and group["key"] not in value:
+        if group["key"] in ("news", "seo") and group["key"] not in value:
             continue
         source = value.get(group["key"])
         check(isinstance(source, dict), "Некорректный раздел настроек.")
@@ -109,6 +109,8 @@ def validate_settings(value):
         check(isinstance(source, dict), "Некорректный раздел настроек.")
         result[group["key"]] = {spec["key"]: field(source.get(spec["key"]), spec) for spec in group["fields"]}
     event = result["event"]
+    for key in ("googleVerification", "yandexVerification"):
+        check(not result["seo"][key] or re.fullmatch(r"[a-zA-Z0-9_-]+", result["seo"][key]), "Вставьте только код подтверждения, без HTML-тега.")
     check(event["arrivalDate"] <= event["startDate"] <= event["endDate"] <= event["departureDate"], "Заезд должен быть не позже начала конкурса, а выезд — не раньше финала.")
     check(event["localDeadline"] <= event["startDate"] and event["travelDeadline"] <= event["startDate"], "Приём заявок должен завершаться не позже начала конкурса.")
     check((date.fromisoformat(event["departureDate"]) - date.fromisoformat(event["arrivalDate"])).days <= 30, "Программа с проживанием не должна превышать 31 день.")
@@ -120,8 +122,8 @@ def validate_settings(value):
         result["jury"].append({"name": text(item.get("name"), "Имя", 120), "role": text(item.get("role"), "Должность", 180), "bio": text(item.get("bio", ""), "Описание", 1000, True), "image": image, "spriteIndex": None})
     result["pages"] = {}
     check(isinstance(value.get("pages"), dict), "Проверьте страницы документов.")
-    for key in ("privacy", "consent"):
-        page = value.get("pages", {}).get(key)
+    for key in ("privacy", "consent", "cookies"):
+        page = value["pages"].get(key)
         check(isinstance(page, dict), "Проверьте страницу документа.")
         result["pages"][key] = {"title": text(page.get("title"), "Заголовок", 160), "lead": text(page.get("lead"), "Вступление", 2000), "sections": [{"heading": text(s.get("heading"), "Название раздела", 160), "text": text(s.get("text"), "Текст раздела", 3000)} for s in list_of(page.get("sections"), 1, 20, "Разделы документа")]}
     if "home" in DEFAULTS:
@@ -186,7 +188,7 @@ def validate_application(value, settings):
 
 
 def settings_images(value):
-    images = [value["venue"]["image"], value["hotel"]["image"], value["hotel"]["roomImage"], *[p["image"] for p in value["jury"]]]
+    images = [value.get("seo", {}).get("image"), value["venue"]["image"], value["hotel"]["image"], value["hotel"]["roomImage"], *[p["image"] for p in value["jury"]]]
     for block in load("home-schema.json") if "home" in value else []:
         group = value["home"][block["key"]]
         images.extend(group[f["key"]] for f in block.get("fields", []) if f.get("type") == "image")

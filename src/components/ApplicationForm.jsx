@@ -8,6 +8,8 @@ import {
 import { useReducedMotion } from "../hooks/useReducedMotion.js";
 import ArrowIcon from "./ArrowIcon.jsx";
 import { useSiteSettings } from "../SiteSettings.jsx";
+import DurationField from "./DurationField.jsx";
+import { durationFromParts } from "../../shared/duration.js";
 
 const initialValues = () => ({
   ...Object.fromEntries(Object.keys(limits).map((key) => [key, ""])),
@@ -77,6 +79,7 @@ export default function ApplicationForm() {
   const { contacts, documents, home } = useSiteSettings();
   const options = applicationOptions(home);
   const [values, setValues] = useState(initialValues);
+  const [durationParts, setDurationParts] = useState({ minutes: "", seconds: "" });
   const [step, setStep] = useState(0);
   const [furthest, setFurthest] = useState(0);
   const [errors, setErrors] = useState({});
@@ -93,7 +96,7 @@ export default function ApplicationForm() {
   useEffect(() => () => requestRef.current?.abort(), []);
   useEffect(() => {
     if (!focusField) return;
-    const field = formRef.current.elements.namedItem(focusField);
+    const field = formRef.current.elements.namedItem(focusField === "duration" ? "durationMinutes" : focusField);
     const target = field instanceof RadioNodeList ? field[0] : field;
     target?.focus({ preventScroll: true });
     target?.scrollIntoView({
@@ -124,7 +127,7 @@ export default function ApplicationForm() {
   }
 
   function validateThrough(lastStep) {
-    const all = validateApplication(values, home);
+    const all = validateApplication({ ...values, duration: durationFromParts(durationParts) }, home);
     const fields = stepFields.slice(0, lastStep + 1).flat();
     const relevant = Object.fromEntries(
       fields.filter((name) => all[name]).map((name) => [name, all[name]]),
@@ -154,7 +157,7 @@ export default function ApplicationForm() {
       return;
     }
     if (!validateThrough(2)) return;
-    const payload = JSON.stringify(values);
+    const payload = JSON.stringify({ ...values, duration: durationFromParts(durationParts) });
     if (submissionRef.current?.payload !== payload)
       submissionRef.current = { payload, key: crypto.randomUUID() };
     const controller = new AbortController();
@@ -180,6 +183,7 @@ export default function ApplicationForm() {
       setSuccess({ number: result.applicationNumber, email: values.email });
       submissionRef.current = null;
       setValues(initialValues());
+      setDurationParts({ minutes: "", seconds: "" });
       setStep(0);
       setFurthest(0);
       setErrors({});
@@ -303,11 +307,16 @@ export default function ApplicationForm() {
               step: 1,
               hint: `Не менее ${options.minParticipants} человек`,
             })}
-            {field("duration", "Хронометраж", {
-              inputMode: "text",
-              placeholder: "03:30",
-              hint: `Не более ${String(Math.floor(options.maxDurationSeconds / 60)).padStart(2, "0")}:${String(options.maxDurationSeconds % 60).padStart(2, "0")}`,
-            })}
+            <DurationField
+              value={durationParts}
+              onChange={parts => {
+                setDurationParts(parts);
+                setErrors(previous => { const next = { ...previous }; delete next.duration; return next; });
+                setAlert("");
+              }}
+              error={errors.duration}
+              maxSeconds={options.maxDurationSeconds}
+            />
           </div>
           {field("nomination", "Номинация", {
             options: options.nominations,
@@ -427,17 +436,18 @@ export default function ApplicationForm() {
           {consent(
             "personalDataAccepted",
             <>
-              Я принимаю{" "}
+              Я даю{" "}
               <a href="/consent" target="_blank" rel="noreferrer">
-                Согласие на обработку персональных данных
-              </a>{" "}
-              и ознакомился(-ась) с{" "}
-              <a href="/privacy" target="_blank" rel="noreferrer">
-                Политикой конфиденциальности
+                согласие на обработку персональных данных
               </a>
               .
             </>,
           )}
+          <p className="form-privacy">
+            Порядок обработки данных описан в{" "}
+            <a href="/privacy" target="_blank" rel="noreferrer">политике конфиденциальности</a>.
+            {" "}<a href="/cookies" target="_blank" rel="noreferrer">Информация о cookies</a>.
+          </p>
           <input
             className="honeypot"
             type="text"

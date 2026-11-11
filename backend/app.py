@@ -309,11 +309,14 @@ def create_app(config=None):
     register_applications(application, engine, settings_record, body)
 
     @application.get("/")
-    @application.get("/index.html")
     def home():
         template = ROOT / "dist" / "index.html"
         check(template.is_file(), "Выполните npm run build.", 503)
-        return Response(render.site_shell(template.read_text(encoding="utf-8"), settings_record()["settings"], origin_url()), mimetype="text/html")
+        return Response(render.site_shell(template.read_text(encoding="utf-8"), settings_record()["settings"], origin_url(), article_cards(True, 3)), mimetype="text/html")
+
+    @application.get("/index.html")
+    def home_redirect():
+        return redirect("/", 301)
 
     @application.get("/admin")
     @application.get("/admin/")
@@ -323,6 +326,7 @@ def create_app(config=None):
 
     @application.get("/privacy")
     @application.get("/consent")
+    @application.get("/cookies")
     def legal_page():
         settings = settings_record()["settings"]
         document = settings["pages"][request.path[1:]]
@@ -330,16 +334,27 @@ def create_app(config=None):
 
     @application.get("/privacy.html")
     @application.get("/consent.html")
+    @application.get("/cookies.html")
     @application.get("/privacy/")
     @application.get("/consent/")
+    @application.get("/cookies/")
     def legal_redirect():
         return redirect(request.path.removesuffix(".html").rstrip("/"), 301)
 
     @application.get("/news")
     def news_index():
-        current_page = min(max(request.args.get("page", 1, type=int), 1), 1000)
+        current_page = request.args.get("page", 1, type=int)
+        if not 1 <= current_page <= 1000:
+            return render.page("missing", settings_record()["settings"], origin_url(), styles(), title="Страница не найдена", noindex=True), 404
+        pathname = "/news" + (f"?page={current_page}" if current_page > 1 else "")
+        if "page" in request.args and (current_page == 1 or request.args["page"] != str(current_page)):
+            return redirect(pathname, 301)
         rows = article_cards(True, 25, (current_page - 1) * 24)
-        return render.page("news", settings_record()["settings"], origin_url(), styles(), articles=rows[:24], has_next=len(rows) > 24, current_page=current_page, noindex=not rows)
+        settings = settings_record()["settings"]
+        if current_page > 1 and not rows:
+            return render.page("missing", settings, origin_url(), styles(), title="Страница не найдена", noindex=True, pathname=pathname), 404
+        title = settings["news"]["title"] + (f" — страница {current_page}" if current_page > 1 else "")
+        return render.page("news", settings, origin_url(), styles(), title=title, pathname=pathname, articles=rows[:24], has_next=len(rows) > 24, current_page=current_page, noindex=not rows)
 
     @application.get("/news/")
     @application.get("/news.html")
@@ -358,7 +373,7 @@ def create_app(config=None):
     @application.get("/sitemap.xml")
     def sitemap():
         rows = article_cards(True, 50000)
-        paths = ["/", "/privacy", "/consent"] + (["/news"] if rows else []) + ["/news/" + a["slug"] for a in rows]
+        paths = ["/", "/privacy", "/consent", "/cookies"] + (["/news"] if rows else []) + ["/news/" + a["slug"] for a in rows]
         content = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + "".join("<url><loc>" + html.escape(origin_url() + p) + "</loc></url>" for p in paths) + "</urlset>"
         return Response(content, mimetype="application/xml")
 
@@ -432,9 +447,11 @@ def register_applications(app, engine, settings_record, body):
         columns = [db.applications.c[key] for key in ("id", "number", "collective", "city", "email", "nomination", "status", "created_at", "version")]
         with engine.connect() as conn:
             total = conn.execute(select(func.count()).select_from(db.applications).where(*clauses)).scalar_one()
+            pages = max(1, (total + 24) // 25)
+            page = min(page, pages)
             rows = conn.execute(select(*columns).where(*clauses).order_by(db.applications.c.created_at.desc(), db.applications.c.id).limit(25).offset((page - 1) * 25)).mappings().all()
             counts = dict(conn.execute(select(db.applications.c.status, func.count()).group_by(db.applications.c.status)).all())
-        return jsonify(applications=[dict(row) for row in rows], total=total, page=page, pages=max(1, (total + 24) // 25), counts=counts, statuses=STATUSES)
+        return jsonify(applications=[dict(row) for row in rows], total=total, page=page, pages=pages, counts=counts, statuses=STATUSES)
 
     @app.get("/api/admin/applications/export")
     @security.admin()
@@ -476,4 +493,47 @@ def register_applications(app, engine, settings_record, body):
         with engine.begin() as conn:
             changed = conn.execute(update(db.applications).where(db.applications.c.id == identity, db.applications.c.version == value["version"]).values(status=value["status"], notes=notes, version=db.applications.c.version + 1, updated_at=db.timestamp()))
             check(changed.rowcount == 1, "Заявка изменена в другой вкладке. Обновите карточку.", 409)
+        return application_detail(identity)
+
+    def reserve_application(conn, identity, version):
+        # Take the application write lock before inspecting its mail. This also
+        # serializes concurrent edits/deletes in SQLite, where FOR UPDATE is ignored.
+        check(type(version) is int and 0 < version < 2**31 - 1, "Обновите карточку заявки.")
+        changed = conn.execute(update(db.applications).where(
+            db.applications.c.id == identity, db.applications.c.version == version,
+        ).values(version=db.applications.c.version + 1, updated_at=db.timestamp()))
+        if changed.rowcount != 1:
+            exists = conn.execute(select(db.applications.c.id).where(db.applications.c.id == identity)).first()
+            check(exists is not None, "Заявка не найдена.", 404)
+            check(False, "Заявка изменена в другой вкладке. Обновите карточку.", 409)
+
+    @app.delete("/api/admin/applications/<identity>")
+    @security.admin(mutation=True)
+    def application_delete(identity):
+        value = body(1024)
+        with engine.begin() as conn:
+            reserve_application(conn, identity, value.get("version"))
+            # Lock mail rows against the cron worker's atomic claim. If it has
+            # already claimed a message, deletion must wait for that send to finish.
+            mail = conn.execute(select(db.outbox.c.status).where(
+                db.outbox.c.application_id == identity,
+            ).with_for_update()).scalars().all()
+            check("sending" not in mail,
+                  "По заявке отправляется письмо. Дождитесь завершения отправки и обновите карточку.", 409)
+            # Explicitly remove mail bodies even when SQLite foreign keys are off.
+            conn.execute(delete(db.outbox).where(db.outbox.c.application_id == identity))
+            conn.execute(delete(db.applications).where(db.applications.c.id == identity))
+        return jsonify(deleted=True)
+
+    @app.post("/api/admin/applications/<identity>/retry-mail")
+    @security.admin(mutation=True)
+    def application_retry_mail(identity):
+        value = body(1024)
+        with engine.begin() as conn:
+            reserve_application(conn, identity, value.get("version"))
+            queued = conn.execute(update(db.outbox).where(
+                db.outbox.c.application_id == identity,
+                db.outbox.c.status.in_(["retry", "failed"]),
+            ).values(status="pending", attempts=0, available_at=int(time.time()), lease_until=0, last_error=""))
+            check(queued.rowcount > 0, "Нет писем для повторной отправки. Обновите карточку.", 409)
         return application_detail(identity)

@@ -3,6 +3,7 @@ import json
 import sqlite3
 import uuid
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -112,6 +113,103 @@ def test_application_status_conflicts_search_export_and_csrf(app, client, auth):
     assert "'=HYPERLINK" in exported.get_data(as_text=True)
 
 
+def test_delete_application_checks_access_version_and_removes_only_related_mail(app, client, auth):
+    for _ in range(2):
+        assert submit(client).status_code == 201
+    records = client.get("/api/admin/applications").json["applications"]
+    target, other = records
+    path = "/api/admin/applications/" + target["id"]
+    version = {"version": target["version"]}
+    assert app.test_client().delete(path, json=version, headers=auth).status_code == 401
+    assert client.delete(path, json=version).status_code == 403
+    assert client.delete(path, json={"version": True}, headers=auth).status_code == 422
+    assert client.delete(path, json={"version": 0}, headers=auth).status_code == 422
+    assert client.delete(path, json={"version": 10**100}, headers=auth).status_code == 422
+    assert client.delete(path, json={"version": 99}, headers=auth).status_code == 409
+    saved = client.put(path, json={**version, "status": "archived", "notes": "Keep until reviewed"}, headers=auth)
+    assert saved.status_code == 200
+    assert client.delete(path, json=version, headers=auth).status_code == 409
+    assert client.get(path).json["application"]["notes"] == "Keep until reviewed"
+    version = {"version": saved.json["application"]["version"]}
+    with app.extensions["db"].begin() as conn:
+        # Sent mail bodies must also be erased from the database.
+        conn.execute(db.outbox.update().where(db.outbox.c.application_id == target["id"]).values(status="sent"))
+    assert client.delete(path, json=version, headers=auth).json == {"deleted": True}
+    assert client.get(path).status_code == 404
+    assert client.delete(path, json=version, headers=auth).status_code == 404
+    assert client.get("/api/admin/applications?search=" + target["number"]).json["total"] == 0
+    assert target["number"] not in client.get("/api/admin/applications/export").get_data(as_text=True)
+    with app.extensions["db"].connect() as conn:
+        assert conn.execute(select(db.applications.c.id)).scalars().all() == [other["id"]]
+        assert conn.execute(select(db.outbox.c.application_id)).scalars().all() == [other["id"], other["id"]]
+
+
+def test_delete_waits_for_active_mail_worker_and_cancels_pending_mail(app, client, auth):
+    assert submit(client).status_code == 201
+    target = client.get("/api/admin/applications").json["applications"][0]
+    path = "/api/admin/applications/" + target["id"]
+    def during_send(message):
+        response = client.delete(path, json={"version": target["version"]}, headers=auth)
+        assert response.status_code == 409
+        assert "отправляется письмо" in response.json["message"]
+        # A rejected deletion rolls back the version reservation.
+        assert client.get(path).json["application"]["version"] == target["version"]
+    assert deliver(app.extensions["db"], maximum=1, send=during_send)["sent"] == 1
+    assert client.delete(path, json={"version": target["version"]}, headers=auth).status_code == 200
+    assert deliver(app.extensions["db"], send=lambda _: pytest.fail("Deleted mail must not be sent"))["sent"] == 0
+
+
+@pytest.mark.parametrize("failed_status", ["retry", "failed"])
+def test_admin_can_requeue_only_failed_mail_without_resending_delivered_mail(app, client, auth, failed_status):
+    for _ in range(2):
+        assert submit(client).status_code == 201
+    target, other = client.get("/api/admin/applications").json["applications"]
+    path = "/api/admin/applications/" + target["id"]
+    retry_path = path + "/retry-mail"
+    version = {"version": target["version"]}
+    engine = app.extensions["db"]
+    with engine.begin() as conn:
+        ids = conn.execute(select(db.outbox.c.id).where(db.outbox.c.application_id == target["id"])).scalars().all()
+        conn.execute(db.outbox.update().values(status=failed_status, attempts=8, available_at=9999999999, last_error="OSError"))
+        conn.execute(db.outbox.update().where(db.outbox.c.id == ids[0]).values(status="sent", attempts=1, last_error=""))
+    assert app.test_client().post(retry_path, json=version, headers=auth).status_code == 401
+    assert client.post(retry_path, json=version).status_code == 403
+    assert client.post(retry_path, json={"version": False}, headers=auth).status_code == 422
+    assert client.post(retry_path, json={"version": 99}, headers=auth).status_code == 409
+    response = client.post(retry_path, json=version, headers=auth)
+    assert response.status_code == 200
+    record = response.json["application"]
+    assert record["version"] == target["version"] + 1
+    assert sorted(mail["status"] for mail in record["mail"]) == ["pending", "sent"]
+    assert client.post(retry_path, json=version, headers=auth).status_code == 409
+    assert client.post(retry_path, json={"version": record["version"]}, headers=auth).status_code == 409
+    assert client.get(path).json["application"]["version"] == record["version"]
+    with engine.connect() as conn:
+        queued = conn.execute(select(db.outbox).where(db.outbox.c.id == ids[1])).mappings().one()
+        assert queued["attempts"] == 0 and queued["last_error"] == "" and queued["lease_until"] == 0
+        assert conn.execute(select(db.outbox.c.status).where(db.outbox.c.application_id == other["id"])).scalars().all() == [failed_status, failed_status]
+    messages = []
+    assert deliver(engine, send=messages.append)["sent"] == 1
+    assert deliver(engine, send=messages.append)["sent"] == 0
+
+
+def test_application_pagination_recovers_when_last_page_is_deleted(app, client, auth):
+    assert submit(client).status_code == 201
+    with app.extensions["db"].begin() as conn:
+        template = dict(conn.execute(select(db.applications)).mappings().one())
+        conn.execute(db.applications.insert(), [
+            {**template, "id": str(uuid.uuid4()), "number": str(uuid.uuid4()), "idempotency_key": str(uuid.uuid4())}
+            for _ in range(25)
+        ])
+    last_page = client.get("/api/admin/applications?page=2").json
+    assert last_page["total"] == 26 and len(last_page["applications"]) == 1
+    target = last_page["applications"][0]
+    assert client.delete("/api/admin/applications/" + target["id"], json={"version": target["version"]}, headers=auth).status_code == 200
+    result = client.get("/api/admin/applications?page=2").json
+    assert result["page"] == result["pages"] == 1
+    assert result["total"] == result["counts"]["new"] == len(result["applications"]) == 25
+
+
 def test_dynamic_form_rules_and_validation(app, client, auth):
     record = client.get("/api/admin/settings").json
     record["settings"]["home"]["registration"]["minParticipants"] = 8
@@ -145,6 +243,92 @@ def test_settings_and_news_require_auth_escape_html_and_reject_stale_edits(clien
     assert "&lt;img" in html and 'type="application/ld+json"' in html
     assert "test-news" in client.get("/sitemap.xml").get_data(as_text=True)
     assert client.delete("/api/admin/articles/" + saved["id"], json={"version": 1}, headers=auth).status_code == 409
+
+
+def test_cookies_page_upgrades_existing_settings_without_overwriting_legal_text(app, client, auth):
+    saved = copy.deepcopy(DEFAULTS)
+    del saved["pages"]["cookies"]
+    saved["pages"]["privacy"]["sections"][0]["text"] = "Сохранённые реквизиты оператора."
+    with app.extensions["db"].begin() as conn:
+        conn.execute(db.settings.update().where(db.settings.c.id == 1).values(data=db.encode(saved)))
+
+    public = app.test_client()
+    response = public.get("/cookies")
+    assert response.status_code == 200
+    assert "__Host-dance_admin" in response.get_data(as_text=True)
+    assert 'href="/privacy"' in response.get_data(as_text=True)
+    assert "Set-Cookie" not in response.headers
+    assert public.get("/cookies/").headers["Location"] == "/cookies"
+    assert public.get("/cookies.html").headers["Location"] == "/cookies"
+    assert "/cookies</loc>" in public.get("/sitemap.xml").get_data(as_text=True)
+
+    record = client.get("/api/admin/settings").json
+    assert record["settings"]["pages"]["privacy"] == saved["pages"]["privacy"]
+    record["settings"]["pages"]["cookies"]["sections"][0]["text"] = '<script>alert(1)</script> Контакты: {email}.'
+    assert client.put("/api/admin/settings", json=record, headers=auth).status_code == 200
+    content = public.get("/cookies").get_data(as_text=True)
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in content
+    assert "<script>alert(1)" not in content
+    assert f'mailto:{saved["contacts"]["email"]}' in content
+    assert "Сохранённые реквизиты оператора." in public.get("/privacy").get_data(as_text=True)
+    assert public.put("/api/admin/settings", json=record).status_code == 401
+
+
+def test_public_pages_and_application_do_not_set_cookies(client):
+    for path in ("/", "/privacy", "/consent", "/cookies", "/news", "/api/settings"):
+        response = client.get(path)
+        assert response.status_code == 200
+        assert "Set-Cookie" not in response.headers
+    response = submit(client)
+    assert response.status_code == 201
+    assert "Set-Cookie" not in response.headers
+
+
+def test_seo_is_server_rendered_editable_and_retired_social_links_are_not_exposed(app, client, auth):
+    saved = copy.deepcopy(DEFAULTS)
+    del saved["seo"]
+    saved["contacts"].update(instagramUrl="https://example.com/retired-instagram", whatsappUrl="https://example.com/retired-whatsapp")
+    with app.extensions["db"].begin() as conn:
+        conn.execute(db.settings.update().values(data=db.encode(saved)))
+    public = app.test_client()
+    document = public.get("/").get_data(as_text=True)
+    assert document.count("<h1 ") == 1
+    assert "Ильдар Гайнутдинов" in document and "Народный танец" in document
+    assert "retired-instagram" not in document and "retired-whatsapp" not in document
+    assert "instagramUrl" not in public.get("/api/settings").get_data(as_text=True)
+    graph = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', document, re.S)[1])["@graph"]
+    event = next(item for item in graph if item["@type"] == "DanceEvent")
+    assert event["startDate"] == "2027-04-03" and event["endDate"] == "2027-04-04"
+    assert 'href="http://localhost/"' in document
+    assert public.get("/index.html").status_code == 301
+
+    record = client.get("/api/admin/settings").json
+    record["settings"]["seo"].update(title="Конкурс {year}: {dates} — {city} $& <script>", description="{venue}: {dates}", googleVerification="test_Google-code", yandexVerification="testYandexCode")
+    record["settings"]["event"].update(startDate="2028-04-03", endDate="2028-04-04", arrivalDate="2028-04-02", departureDate="2028-04-05")
+    assert client.put("/api/admin/settings", json=record, headers=auth).status_code == 200
+    document = public.get("/").get_data(as_text=True)
+    assert "Конкурс 2028: 3–4 апреля 2028 — Москва $&amp; &lt;script&gt;</title>" in document
+    assert '<meta name="google-site-verification" content="test_Google-code">' in document
+    assert '<meta name="yandex-verification" content="testYandexCode">' in document
+    assert '<meta property="og:title"' in document
+    assert '<script>"' not in document
+    assert '"startDate": "2028-04-03"' in document
+    assert 'href="/news"' in document
+
+
+def test_news_pagination_has_distinct_canonicals_and_real_404s(app, client):
+    with app.extensions["db"].begin() as conn:
+        for index in range(25):
+            conn.execute(db.articles.insert().values(id=str(uuid.uuid4()), slug=f"article-{index}", title=f"Article {index}", description="Description", category="News", date="2026-11-01", image="", sections=db.encode([]), published=True, version=1, updated_at=db.timestamp()))
+    second = client.get("/news?page=2")
+    assert second.status_code == 200
+    assert '<link rel="canonical" href="http://localhost/news?page=2">' in second.get_data(as_text=True)
+    assert "страница 2" in second.get_data(as_text=True)
+    assert client.get("/news?page=1").headers["Location"] == "/news"
+    assert client.get("/news?page=02").headers["Location"] == "/news?page=2"
+    assert client.get("/news?page=not-a-number").headers["Location"] == "/news"
+    assert client.get("/news?page=3").status_code == 404
+    assert client.get("/news?page=-1").status_code == 404
 
 
 def test_media_remain_private_until_used_and_path_traversal_is_denied(app, client, auth):

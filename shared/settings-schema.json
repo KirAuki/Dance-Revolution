@@ -184,12 +184,6 @@
         "type": "url"
       },
       {
-        "key": "instagramUrl",
-        "label": "Ссылка на Instagram",
-        "type": "url",
-        "optional": true
-      },
-      {
         "key": "vkUrl",
         "label": "Ссылка на VK",
         "type": "url",
@@ -199,13 +193,18 @@
         "key": "maxUrl",
         "label": "Ссылка на MAX",
         "type": "url"
-      },
-      {
-        "key": "whatsappUrl",
-        "label": "Ссылка на WhatsApp",
-        "type": "url",
-        "optional": true
       }
+    ]
+  },
+  {
+    "key": "seo",
+    "title": "SEO и поиск",
+    "fields": [
+      { "key": "title", "label": "Title главной страницы", "maxLength": 160 },
+      { "key": "description", "label": "Описание для поиска (description)", "type": "textarea", "maxLength": 500 },
+      { "key": "image", "label": "Изображение при отправке ссылки", "type": "image" },
+      { "key": "googleVerification", "label": "Код подтверждения Google Search Console", "optional": true, "maxLength": 256 },
+      { "key": "yandexVerification", "label": "Код подтверждения Яндекс Вебмастера", "optional": true, "maxLength": 256 }
     ]
   },
   {

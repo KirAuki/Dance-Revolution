@@ -3,6 +3,12 @@ import { validApplication } from "./fixtures.js";
 
 async function fillStep(page, names) {
   for (const name of names) {
+    if (name === "duration") {
+      const [minutes, seconds] = validApplication.duration.split(":");
+      await page.getByRole("textbox", { name: "Минуты", exact: true }).fill(minutes);
+      await page.getByRole("textbox", { name: "Секунды", exact: true }).fill(seconds);
+      continue;
+    }
     const control = page.locator(`[name="${name}"]`);
     if (["nomination", "ageCategory", "professionalLevel"].includes(name))
       await control.selectOption(validApplication[name]);
@@ -248,6 +254,61 @@ test("form validates every step, requires guests and preserves entered values", 
     "true",
   );
   await expect(page.locator('[name="email"]')).toBeHidden();
+});
+
+test("duration supports separate fields, colon typing and pasted formats without losing validation", async ({ page }, testInfo) => {
+  await page.goto("/#application");
+  await fillStep(page, ["collective", "performanceTitle", "participantCount", "nomination", "ageCategory", "professionalLevel"]);
+  const minutes = page.getByRole("textbox", { name: "Минуты", exact: true });
+  const seconds = page.getByRole("textbox", { name: "Секунды", exact: true });
+  await page.getByRole("button", { name: "Далее" }).click();
+  await expect(minutes).toBeFocused();
+  await expect(page.locator("#duration-error")).toBeVisible();
+  for (const [min, sec] of [["0", "00"], ["3", "60"], ["4", "01"], ["1.5", "30"]]) {
+    await minutes.fill(min);
+    await seconds.fill(sec);
+    await page.getByRole("button", { name: "Далее" }).click();
+    await expect(page.locator("#duration-error")).toBeVisible();
+    await expect(minutes).toBeVisible();
+  }
+  await minutes.fill("");
+  await seconds.fill("");
+  await minutes.pressSequentially("3:30");
+  await expect(minutes).toHaveValue("3");
+  await expect(seconds).toHaveValue("30");
+  for (const input of ["03:30", "3.30", "3,30", "3 30", "330"]) {
+    await minutes.evaluate((node, text) => {
+      const clipboardData = new DataTransfer();
+      clipboardData.setData("text", text);
+      node.dispatchEvent(new ClipboardEvent("paste", { clipboardData, bubbles: true, cancelable: true }));
+    }, input);
+    await expect(minutes).toHaveValue(input === "03:30" ? "03" : "3");
+    await expect(seconds).toHaveValue("30");
+  }
+  for (const width of [320, 390, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.locator(".duration-field").screenshot({ path: testInfo.outputPath(`duration-${width}.png`) });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  }
+  // A performance under one minute does not require typing a zero in minutes.
+  await minutes.fill("");
+  await seconds.fill("45");
+  await page.getByRole("button", { name: "Далее" }).click();
+  await page.getByRole("button", { name: "01 Номер" }).click();
+  await expect(minutes).toHaveValue("");
+  await expect(seconds).toHaveValue("45");
+  await page.getByRole("button", { name: "Далее" }).click();
+  await secondStep(page);
+  await finalStep(page);
+  const saved = page.waitForResponse(response => response.url().endsWith("/api/application") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Отправить заявку" }).click();
+  const response = await saved;
+  expect(response.status()).toBe(201);
+  expect(response.request().postDataJSON().duration).toBe("00:45");
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.getByRole("button", { name: "Закрыть", exact: true }).last().click();
+  await expect(minutes).toHaveValue("");
+  await expect(seconds).toHaveValue("");
 });
 
 test("form keeps data on failure, blocks duplicate submits and resets after confirmed success", async ({

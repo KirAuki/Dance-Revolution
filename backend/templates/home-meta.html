@@ -1,0 +1,16 @@
+<link rel="canonical" href="{{ canonical }}">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="Танцевальная революция">
+<meta property="og:title" content="{{ seo.title }}">
+<meta property="og:description" content="{{ seo.description }}">
+<meta property="og:url" content="{{ canonical }}">
+<meta property="og:image" content="{{ image }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ seo.title }}">
+<meta name="twitter:description" content="{{ seo.description }}">
+<meta name="twitter:image" content="{{ image }}">
+{% if settings.seo.googleVerification %}<meta name="google-site-verification" content="{{ settings.seo.googleVerification }}">{% endif %}
+{% if settings.seo.yandexVerification %}<meta name="yandex-verification" content="{{ settings.seo.yandexVerification }}">{% endif %}
+<script type="application/ld+json">{{ schema }}</script>

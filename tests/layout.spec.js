@@ -4,7 +4,7 @@ async function settle(page) {
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 }
 
-test("joined cards keep complete borders and aligned descriptions across breakpoints", async ({ page }) => {
+test("joined cards keep complete borders and aligned descriptions across breakpoints", async ({ page }, testInfo) => {
   await page.goto("/");
   await page.evaluate(() => document.fonts.ready);
   for (const width of [320, 390, 560, 561, 768, 900, 901, 1024, 1180, 1181, 1440, 1920, 2560]) {
@@ -31,13 +31,16 @@ test("joined cards keep complete borders and aligned descriptions across breakpo
       expect(Math.max(...measurements.differences), `${selector} at ${width}`).toBeLessThan(1);
     }
   }
-  for (const route of ["/privacy", "/consent", "/news"]) {
+  for (const route of ["/privacy", "/consent", "/cookies", "/news"]) {
     await page.goto(route);
     await page.evaluate(() => document.fonts.ready);
     for (const width of [320, 390, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await settle(page);
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `${route} at ${width}`).toBeLessThanOrEqual(width);
+      if (route === "/cookies" && [390, 1440].includes(width)) {
+        await page.screenshot({path: testInfo.outputPath(`cookies-${width}.png`), fullPage: true});
+      }
     }
   }
 });

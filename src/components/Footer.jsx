@@ -3,14 +3,12 @@ import { phoneHref } from "../../shared/site-settings.js";
 
 const socialLinks = [
   { key: "telegramUrl", label: "Telegram", icon: "telegram" },
-  { key: "instagramUrl", label: "Instagram", icon: "instagram" },
   { key: "vkUrl", label: "VK", icon: "vk" },
   { key: "maxUrl", label: "MAX", icon: "max" },
-  { key: "whatsappUrl", label: "WhatsApp", icon: "whatsapp" },
 ];
 
 export default function Footer() {
-  const { event, contacts, documents, home } = useSiteSettings();
+  const { event, contacts, documents, home, pages } = useSiteSettings();
   return (
     <footer className="footer" id="contacts">
       <div className="shell footer__hero">
@@ -44,8 +42,9 @@ export default function Footer() {
           >
             Положение
           </a>
-          <a href="/privacy">Политика конфиденциальности</a>
-          <a href="/consent">Согласие на обработку ПД</a>
+          <a href="/privacy">{pages.privacy.title}</a>
+          <a href="/consent">{pages.consent.title}</a>
+          <a href="/cookies">{pages.cookies.title}</a>
           <a href="/news">Новости и статьи</a>
         </div>
       </div>

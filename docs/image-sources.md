@@ -28,7 +28,7 @@
 
 ## Прочие изображения
 
-- Иконки Telegram, Instagram, VK и WhatsApp: [Simple Icons](https://github.com/simple-icons/simple-icons), CC0-1.0, локальные SVG в `public/assets/social/`.
+- Иконки Telegram и VK: [Simple Icons](https://github.com/simple-icons/simple-icons), CC0-1.0, локальные SVG в `public/assets/social/`.
 - Иконка MAX: тёмная версия из [официального брендбука](https://go.max.ru/brandbook), [исходный архив](https://st.max.ru/brandbook/max-dark.zip).
 
 - `public/assets/dancers-stage.webp`, `public/assets/award-trophy.webp`, `public/assets/money-prize.webp`, `public/assets/jury-five.webp` — изображения, подготовленные для текущей версии сайта.
